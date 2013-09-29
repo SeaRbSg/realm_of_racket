@@ -5,6 +5,6 @@ task :homework do
   homework = Dir["*/*.rkt"].sort.reverse
 
   homework.each do |path|
-    sh "racket", path
+    sh "racket", "-t", "extras.rkt", path
   end
 end
