@@ -1,7 +1,7 @@
 #lang racket
 (require 2htdp/universe 2htdp/image)
 
-(struct interval (small big guess-count))
+(struct guessing-state (small big guess-count))
 
 (define TEXT-SIZE 14)
 (define HELP-TEXT
@@ -26,7 +26,7 @@
   (place-image/align
    HELP-TEXT TEXT-X TEXT-UPPER-Y "left" "top"
    (place-image/align
-    (text (number->string (interval-guess-count w)) COUNT-SIZE COLOR) TEXT-X TEXT-MIDDLE-Y "left" "middle"
+    (text (number->string (guessing-state-guess-count w)) COUNT-SIZE COLOR) TEXT-X TEXT-MIDDLE-Y "left" "middle"
     (place-image/align
      HELP-TEXT2 TEXT-X TEXT-LOWER-Y "left" "bottom"
      (empty-scene WIDTH HEIGHT)))))
@@ -39,17 +39,17 @@
         [else w]))
 
 (define (smaller w)
-  (interval (interval-small w)
-            (max (interval-small w) (sub1 (guess w)))
-            (add1 (interval-guess-count w))))
+  (guessing-state (guessing-state-small w)
+            (max (guessing-state-small w) (sub1 (guess w)))
+            (add1 (guessing-state-guess-count w))))
 
 (define (bigger w)
-  (interval (min (interval-big w) (add1 (guess w)))
-            (interval-big w)
-            (add1 (interval-guess-count w))))
+  (guessing-state (min (guessing-state-big w) (add1 (guess w)))
+            (guessing-state-big w)
+            (add1 (guessing-state-guess-count w))))
 
 (define (guess w)
-  (quotient (+ (interval-small w) (interval-big w)) 2))
+  (quotient (+ (guessing-state-small w) (guessing-state-big w)) 2))
 
 
 (define (render w)
@@ -57,13 +57,13 @@
            (MT-SC w)))
 
 (define (single? w)
-  (= (interval-small w) (interval-big w)))
+  (= (guessing-state-small w) (guessing-state-big w)))
 
 (define (render-last-scene w)
   (overlay (text "End" SIZE COLOR) (MT-SC w)))
 
 (define (start lower upper)
-  (big-bang (interval lower upper 0)
+  (big-bang (guessing-state lower upper 0)
             (on-key deal-with-guess)
             (to-draw render)
             (stop-when single? render-last-scene)))
