@@ -1,0 +1,10 @@
+
+task :default => :homework
+
+task :homework do
+  homework = Dir["*/*.rkt"].sort.reverse
+
+  homework.each do |path|
+    sh "racket", path
+  end
+end
