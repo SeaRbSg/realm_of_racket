@@ -1,7 +1,14 @@
+# simple tasks to run racket files
 
-task :default => :homework
+task :default => :latest
 
-task :homework do
+task :latest do
+  path = Dir["*/*.rkt"].sort.last
+
+  sh "racket", "-t", "extras.rkt", path
+end
+
+task :all do
   homework = Dir["*/*.rkt"].sort.reverse
 
   homework.each do |path|
