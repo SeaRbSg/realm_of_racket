@@ -4,5 +4,6 @@
 
 (require rackunit)
 
-(define (check-output-equal? str x)
-  (check-equal? str (with-output-to-string (lambda () (print x)))))
+(define (check-output-equal? x str)
+  (check-equal? (with-output-to-string (lambda () (print x)))
+                str))

@@ -12,7 +12,8 @@
 
 (define sophomore3 (student 'David 100234 'PG))
 
-(check-equal? 'David (student-name sophomore3))
+(check-equal? (student-name sophomore3)
+              'David)
 
 (check-false (student? 'a))
 (check-true  (student? sophomore3))
@@ -51,68 +52,73 @@
 (define (add-to-front-of-123 x)
   (cons x '(1 2 3)))
 
-(check-equal? '(a 1 2 3)       (add-to-front-of-123 'a))
-(check-equal? '(0 1 2 3)       (add-to-front-of-123 0))
-(check-equal? '((a b c) 1 2 3) (add-to-front-of-123 '(a b c))0)
+(check-equal? (add-to-front-of-123 'a)
+              '(a 1 2 3))
+(check-equal? (add-to-front-of-123 0)
+              '(0 1 2 3))
+(check-equal? (add-to-front-of-123 '(a b c))
+              '((a b c) 1 2 3))
 
 ;; 4.2
 
-(check-equal? 'yup
-              (if (= (+ 1 2) 3)
+(check-equal? (if (= (+ 1 2) 3)
                   'yup
-                  'nope))
+                  'nope)
+              'yup)
 
-(check-equal? 'nope
-              (if (= (+ 1 2) 4)
+(check-equal? (if (= (+ 1 2) 4)
                   'yup
-                  'nope))
+                  'nope)
+              'nope)
 
-(check-equal? 'everything-except-#f-counts-as-#t
-              (if '(1)
+(check-equal? (if '(1)
                   'everything-except-#f-counts-as-#t
-                  'aw-heck-no))
+                  'aw-heck-no)
+              'everything-except-#f-counts-as-#t)
 
-(check-equal? 'everything-except-#f-counts-as-#t
-              (if empty
+(check-equal? (if empty
                   'everything-except-#f-counts-as-#t
-                  'aw-heck-no))
+                  'aw-heck-no)
+              'everything-except-#f-counts-as-#t)
 
-(check-equal? 'aw-heck-no
-              (if false
+(check-equal? (if false
                   'everything-except-#f-counts-as-#t
-                  'aw-heck-no))
+                  'aw-heck-no)
+              'aw-heck-no)
 
-(check-equal? 'odd-number
-              (if (odd? 5)
+(check-equal? (if (odd? 5)
                   'odd-number
-                  'even-number))
+                  'even-number)
+              'odd-number)
 
-(check-equal? 'odd-number
-              (if (odd? 5)
+(check-equal? (if (odd? 5)
                   'odd-number
-                  (/ 1 0)))
+                  (/ 1 0))
+              'odd-number)
 
 (define x 7)
 
-(check-equal? 5
-              (if (even? x)
+(check-equal? (if (even? x)
                   'even-number
                   (if (= x 7)
                       5
-                      'odd-number)))
+                      'odd-number))
+              5)
 
-(check-equal? 5
-              (cond [(= x 7)  5]
+(check-equal? (cond [(= x 7)  5]
                     [(odd? x) 'odd-number]
-                    [else     'even-number]))
+                    [else     'even-number])
+              5)
 
 (define (my-length a-list)
   (if (empty? a-list)
       0
       (add1 (my-length (rest a-list)))))
 
-(check-equal? 4 (my-length '(list with four symbols)))
-(check-equal? 1 (my-length '(42)))
+(check-equal? (my-length '(list with four symbols))
+              4)
+(check-equal? (my-length '(42))
+              1)
 
 ;; 4.3
 
@@ -138,10 +144,10 @@
 
 (check-false (and (odd? 5) (even? 5) (/ 1 0)))
 
-(check-equal? '4-is-in
-              (if (member 4 '(3 4 1 5))
+(check-equal? (if (member 4 '(3 4 1 5))
                   '4-is-in
-                  'not-in))
+                  'not-in)
+              '4-is-in)
 
 ;; the book has a bug in it. They insist that this returns '(1 5)
 ;; when it returns '(4 1 5)
