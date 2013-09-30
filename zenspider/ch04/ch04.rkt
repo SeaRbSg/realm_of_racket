@@ -56,3 +56,61 @@
 (check-equal? '((a b c) 1 2 3) (add-to-front-of-123 '(a b c))0)
 
 ;; 4.2
+
+(check-equal? 'yup
+              (if (= (+ 1 2) 3)
+                  'yup
+                  'nope))
+
+(check-equal? 'nope
+              (if (= (+ 1 2) 4)
+                  'yup
+                  'nope))
+
+(check-equal? 'everything-except-#f-counts-as-#t
+              (if '(1)
+                  'everything-except-#f-counts-as-#t
+                  'aw-heck-no))
+
+(check-equal? 'everything-except-#f-counts-as-#t
+              (if empty
+                  'everything-except-#f-counts-as-#t
+                  'aw-heck-no))
+
+(check-equal? 'aw-heck-no
+              (if false
+                  'everything-except-#f-counts-as-#t
+                  'aw-heck-no))
+
+(check-equal? 'odd-number
+              (if (odd? 5)
+                  'odd-number
+                  'even-number))
+
+(check-equal? 'odd-number
+              (if (odd? 5)
+                  'odd-number
+                  (/ 1 0)))
+
+(define x 7)
+
+(check-equal? 5
+              (if (even? x)
+                  'even-number
+                  (if (= x 7)
+                      5
+                      'odd-number)))
+
+(check-equal? 5
+              (cond [(= x 7)  5]
+                    [(odd? x) 'odd-number]
+                    [else     'even-number]))
+
+(define (my-length a-list)
+  (if (empty? a-list)
+      0
+      (add1 (my-length (rest a-list)))))
+
+(check-equal? 4 (my-length '(list with four symbols)))
+(check-equal? 1 (my-length '(42)))
+
