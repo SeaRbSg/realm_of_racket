@@ -2,16 +2,20 @@
 
 task :default => :latest
 
+def racket path
+  sh "racket", "-t", "extras.rkt", "-t", path
+end
+
 task :latest do
   path = Dir["*/*.rkt"].sort.last
 
-  sh "racket", "-t", "extras.rkt", path
+  racket path
 end
 
 task :all do
   homework = Dir["*/*.rkt"].sort.reverse
 
   homework.each do |path|
-    sh "racket", "-t", "extras.rkt", path
+    racket path
   end
 end
