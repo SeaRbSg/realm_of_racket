@@ -114,3 +114,41 @@
 (check-equal? 4 (my-length '(list with four symbols)))
 (check-equal? 1 (my-length '(42)))
 
+;; 4.3
+
+(set! x 5) ; ugh
+(define y 7)
+(define z 9)
+
+(check-true (and (odd? x) (odd? y) (odd? z)))
+
+(define w 4)
+
+(check-true (or (odd? w) (odd? y) (odd? z)))
+
+(define is-it-even #f)
+(check-false is-it-even)
+
+(check-true  (or  (odd? x)  (set! is-it-even #t)))
+(check-false (and (even? x) (set! is-it-even #t)))
+(check-false is-it-even)
+
+(check-pred void? (or  (odd? w) (set! is-it-even #t)))
+(check-true is-it-even)
+
+(check-false (and (odd? 5) (even? 5) (/ 1 0)))
+
+(check-equal? '4-is-in
+              (if (member 4 '(3 4 1 5))
+                  '4-is-in
+                  'not-in))
+
+;; the book has a bug in it. They insist that this returns '(1 5)
+;; when it returns '(4 1 5)
+(check-equal? (member 4 '(3 4 1 5))
+              '(4 1 5))
+
+;; but then it goes to say that this is correct (which it is)
+(define tasks '(1 clean 3 homework 4 party))
+(check-equal? (member 3 tasks)
+              '(3 homework 4 party))
