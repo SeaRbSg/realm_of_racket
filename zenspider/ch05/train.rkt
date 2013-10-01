@@ -15,9 +15,6 @@
 
 (define IMAGE-of-TRAIN (bitmap/file "ch05/ufo.png"))
 
-(define (state-is-300 current-state)
-  (>= current-state 300))
-
 (define (key-handler w key)
   (cond [(key=? key "q")      (stop-with w)]
         [(key=? key "escape") (stop-with w)]
