@@ -6,8 +6,8 @@
 
 (define HEIGHT       480)
 (define SIZE         72)
-(define TEXT-LOWER-Y 135)
 (define TEXT-SIZE    12)
+(define TEXT-LOWER-Y (- HEIGHT TEXT-SIZE -10))
 (define TEXT-UPPER-Y 10)
 (define TEXT-X       3)
 (define WIDTH        640)
