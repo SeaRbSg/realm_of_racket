@@ -158,3 +158,34 @@
 (define tasks '(1 clean 3 homework 4 party))
 (check-equal? (member 3 tasks)
               '(3 homework 4 party))
+
+;; 4.4
+
+(struct point (x y) #:transparent)
+
+(define (distance-to-origin p)
+  (sqrt (+ (sqr (point-x p))
+           (sqr (point-y p)))))
+
+(check-equal? (distance-to-origin (point 3 4))
+              5)
+
+(define pt1 (point -1 2))
+(define pt2 (point -1 2))
+
+(check-true (equal? pt1 pt2))
+
+(check-false (eq? pt1 pt2))
+(check-true  (eq? pt1 pt1))
+(check-true  (eq? pt2 pt2))
+
+(define pt3 pt1)
+
+(check-true (eq? pt1 pt3))
+
+(define (eq-first-items l1 l2)
+  (eq? (first l1) (first l2)))
+
+(check-true  (eq-first-items (cons pt1 empty) (cons pt3 empty)))
+
+(check-false (eq-first-items (cons pt1 empty) (cons pt2 empty)))
