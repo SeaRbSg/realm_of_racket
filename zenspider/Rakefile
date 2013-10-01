@@ -19,3 +19,8 @@ task :all do
     racket path
   end
 end
+
+task :clean do
+  a = Dir["**/*~"]
+  rm_f a unless a.empty?
+end
