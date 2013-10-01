@@ -1,6 +1,7 @@
 #lang racket
 
 (require rackunit)
+(require (file "../extras.rkt"))
 
 ;; 3.2
 
