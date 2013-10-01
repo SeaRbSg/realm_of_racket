@@ -1,6 +1,7 @@
 #lang racket
 
 (require rackunit)
+(require (file "../extras.rkt"))
 
 ;; 3.2
 
@@ -13,59 +14,64 @@
 (check-true  (zero? (sub1 1)))
 (check-false (symbol=? 'foo 'FoO))
 
-(check-equal? 24356848165022712132477606520104725518533453128685640844505130879576720609150223301256150373
-              (expt 53 53))
+(check-equal? (expt 53 53)
+              24356848165022712132477606520104725518533453128685640844505130879576720609150223301256150373)
 
-(check-equal? 0+1i
-              (sqrt -1))
+(check-equal? (sqrt -1)
+              0+1i)
 
-(check-equal? -1
-             (* (sqrt -1) (sqrt -1)))
+(check-equal? (* (sqrt -1) (sqrt -1))
+             -1)
 
-(check-equal? 2/3
-              (/ 4 6))
+(check-equal? (/ 4 6)
+              2/3)
 
 (check-= 0.66666 (/ 4.0 6) 0.001)
 
 (check-equal? "tutti frutti" "tutti frutti")
 
-(check-equal? "tuttifrutti"  (string-append "tutti" "frutti"))
+(check-equal? (string-append "tutti" "frutti")
+              "tuttifrutti")
 
-(check-equal? "tutti frutti" (string-append "tutti" " " "frutti"))
+(check-equal? (string-append "tutti" " " "frutti")
+              "tutti frutti")
 
 ;; 3.4
 
-(check-equal? '(1 . 2) (cons 1 2))
+(check-equal? (cons 1 2)
+              '(1 . 2))
 
 (define cell (cons 'a 'b))
 
-(check-equal? 'a (car cell))
+(check-equal? (car cell)
+              'a)
 
-(check-equal? 'b (cdr cell))
+(check-equal? (cdr cell)
+              'b)
 
-(check-equal? '(chicken)
-              (cons 'chicken empty))
+(check-equal? (cons 'chicken empty)
+              '(chicken))
 
-(check-equal? '(chicken)
-              (cons 'chicken '()))
+(check-equal? (cons 'chicken '())
+              '(chicken))
 
-(check-equal? '(pork beef chicken)
-              (cons 'pork '(beef chicken)))
+(check-equal? (cons 'pork '(beef chicken))
+              '(pork beef chicken))
 
-(check-equal? '(beef chicken)
-              (cons 'beef (cons 'chicken '())))
+(check-equal? (cons 'beef (cons 'chicken '()))
+              '(beef chicken))
 
-(check-equal? '(pork beef chicken)
-              (cons 'pork (cons 'beef (cons 'chicken '()))))
+(check-equal? (cons 'pork (cons 'beef (cons 'chicken '())))
+              '(pork beef chicken))
 
-(check-equal? '(pork beef chicken)
-              (list 'pork 'beef 'chicken))
+(check-equal? (list 'pork 'beef 'chicken)
+              '(pork beef chicken))
 
-(check-equal? 'pork
-              (first (cons 'pork (cons 'beef (cons 'chicken empty)))))
+(check-equal? (first (cons 'pork (cons 'beef (cons 'chicken empty))))
+              'pork)
 
-(check-equal? '(beef chicken)
-              (rest (list 'pork 'beef 'chicken)))
+(check-equal? (rest (list 'pork 'beef 'chicken))
+              '(beef chicken))
 
 ;;; blah blah blah
 
@@ -75,9 +81,11 @@
 
 (define freshman1 (student 'Joe 1234 'NewHall))
 
-(check-equal? 'Joe (student-name freshman1))
+(check-equal? (student-name freshman1)
+              'Joe)
 
-(check-equal? 1234 (student-id# freshman1))
+(check-equal? (student-id# freshman1)
+              1234)
 
 (define mimi   (student 'Mimi   1234 'NewHall))
 (define nicole (student 'Nicole 5678 'NewHall))
@@ -85,7 +93,8 @@
 (define eric   (student 'Eric   4321 'NewHall))
 (define in-class (list mimi nicole rose eric))
 
-(check-equal? 8765 (student-id# (third in-class)))
+(check-equal? (student-id# (third in-class))
+              8765)
 
 (struct student-body (freshmen sophomores juniors seniors))
 (define all-students (student-body (list freshman1 (student 'Mary 0101 'OldHall))
@@ -93,18 +102,23 @@
                                    (list (student 'Bob  4321 'Apartment))
                                    empty))
 
-(check-equal? 'Joe  (student-name (first  (student-body-freshmen all-students))))
-(check-equal? 'Mary (student-name (second (student-body-freshmen all-students))))
-(check-equal? 'Bob  (student-name (first  (student-body-juniors  all-students))))
+(check-equal? (student-name (first  (student-body-freshmen all-students)))
+              'Joe)
+(check-equal? (student-name (second (student-body-freshmen all-students)))
+              'Mary)
+(check-equal? (student-name (first  (student-body-juniors  all-students)))
+              'Bob)
 
 (struct example (x y z))
 (define ex1 (example 1 2 3))
 
-(check-output-equal? "#<example>" ex1)
+(check-output-equal? ex1
+                     "#<example>")
 
 (struct example2 (p q r) #:transparent)
 (define ex2 (example2 9 8 7))
 
 ;; ex2
 
-(check-output-equal? "(example2 9 8 7)" ex2)
+(check-output-equal? ex2
+                     "(example2 9 8 7)")

@@ -3,7 +3,7 @@
 task :default => :latest
 
 def racket path
-  sh "racket", "-t", "extras.rkt", "-t", path
+  sh "racket", path
 end
 
 task :latest do
@@ -18,4 +18,9 @@ task :all do
   homework.each do |path|
     racket path
   end
+end
+
+task :clean do
+  a = Dir["**/*~"]
+  rm_f a unless a.empty?
 end
