@@ -6,7 +6,7 @@
 (define HEIGHT 480)
 
 (define (move-train current-state)
-  (+ current-state 6))
+  (modulo (+ current-state 6) WIDTH))
 
 (define (draw-a-train-onto-an-empty-scene current-state)
   (place-image
