@@ -15,6 +15,10 @@
 
 (define IMAGE-of-UFO (bitmap/file "ch05/ufo.png"))
 
+(define (state-is-300 current-state)
+  (>= current-state 300))
+
 (big-bang 0
           [on-tick add-3-to-state]
-          [to-draw draw-a-ufo-onto-an-empty-scene])
+          [to-draw draw-a-ufo-onto-an-empty-scene]
+          [stop-when state-is-300])
