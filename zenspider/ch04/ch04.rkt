@@ -189,3 +189,5 @@
 (check-true  (eq-first-items (cons pt1 empty) (cons pt3 empty)))
 
 (check-false (eq-first-items (cons pt1 empty) (cons pt2 empty)))
+
+;; consider 4.5 done since I've converted everything to tests.
