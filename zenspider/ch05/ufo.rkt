@@ -11,7 +11,7 @@
 (define-runtime-path ufo-path "ufo.png")
 (define WIDTH  640)
 (define HEIGHT 480)
-(define MAX-BUBBLES 50)
+(define BUBBLE-LIFE 50)
 (define IMAGE-of-UFO (bitmap/file ufo-path))
 (define PV 10)
 (define NV (- PV))
@@ -26,8 +26,15 @@
        (equal? (pos-x a) (pos-x b))
        (equal? (pos-y a) (pos-y b))))
 
+;; TODO: define a macro to wrap up the let forms below
+
 (define (tick w)
-  (set-game-tick! w (add1 (game-tick w)))
+  (let ((current (add1 (game-tick w)))
+        (trail (game-trail w)))
+
+    (set-game-tick! w current)
+
+    (queue-filter! trail (lambda (h) (< (- current (hist-t h)) BUBBLE-LIFE))))
 
   w)
 
@@ -45,9 +52,10 @@
                                  (draw-trail w)))))
 
 (define (draw-trail w)
-  (let ((trail (game-trail w))
-        (size 5))
-    (foldl (lambda (h r) (place-image (circle size "outline" "black")
+  (let* ((current (game-tick w))
+         (trail   (game-trail w))
+         (size    (lambda (h) (- current (hist-t h)))))
+    (foldl (lambda (h r) (place-image (circle (size h) "outline" "black")
                                       (pos-x h)
                                       (pos-y h)
                                       r))
@@ -64,9 +72,6 @@
     (set-game-pos! w new-pos)
 
     (enqueue! trail new-hist)
-
-    (when (> (queue-length trail) MAX-BUBBLES)
-          (dequeue! trail))
 
     w))
 
