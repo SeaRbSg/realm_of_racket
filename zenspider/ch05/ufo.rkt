@@ -24,21 +24,9 @@
        (equal? (pos-y a) (pos-y b))))
 
 (define (tick w)
-  (set-game-tick! w (add1 (game-tick w)))
-
-  (let* ((trail (game-trail w))
-         (p (game-pos w))
-         (prev (and (non-empty-queue? trail)
-                    (last (queue->list trail)))) ;; omg horrible
-         (new-hist (hist (pos-x p) (pos-y p) (game-tick w))))
-
-    (unless (pos-=? new-hist prev)
-            (enqueue! trail new-hist))
-
-    (when (> (queue-length trail) 50)
-          (dequeue! trail))
-
-    w))
+  (unless (void? w)
+    (set-game-tick! w (add1 (game-tick w))))
+  w)
 
 (define (draw-game-tick w scene)
   (let ((p (game-pos w)))
@@ -64,9 +52,19 @@
            (queue->list trail))))
 
 (define (move-ufo w x y)
-  (let ((p (game-pos w)))
-    (set-game-pos! w (pos (modulo (+ x (pos-x p)) WIDTH)
-                          (modulo (+ y (pos-y p)) HEIGHT)))
+  (let* ((p (game-pos w))
+         (trail (game-trail w))
+         (new-pos (pos (modulo (+ x (pos-x p)) WIDTH)
+                       (modulo (+ y (pos-y p)) HEIGHT)))
+         (new-hist (hist (pos-x new-pos) (pos-y new-pos) (game-tick w))))
+
+    (set-game-pos! w new-pos)
+
+    (enqueue! trail new-hist)
+
+    (when (> (queue-length trail) 50)
+          (dequeue! trail))
+
     w))
 
 (define (key-handler w key)
