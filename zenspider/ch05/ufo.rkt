@@ -5,6 +5,7 @@
 
 (struct game (tick pos trail) #:mutable #:transparent)
 (struct pos (x y) #:transparent)
+(struct hist pos (t) #:transparent)
 
 (define WIDTH  640)
 (define HEIGHT 480)
@@ -15,23 +16,52 @@
 (define (new-game)
   (game 0
         (pos (/ WIDTH 2) (/ HEIGHT 2))
-        '()))
+        (make-queue)))
+
+(define (pos-=? a b)
+  (and a b
+       (equal? (pos-x a) (pos-x b))
+       (equal? (pos-y a) (pos-y b))))
 
 (define (tick w)
   (set-game-tick! w (add1 (game-tick w)))
-  w)
 
-(define (draw-game-tick w)
+  (let* ((trail (game-trail w))
+         (p (game-pos w))
+         (prev (and (non-empty-queue? trail)
+                    (last (queue->list trail)))) ;; omg horrible
+         (new-hist (hist (pos-x p) (pos-y p) (game-tick w))))
+
+    (unless (pos-=? new-hist prev)
+            (enqueue! trail new-hist))
+
+    (when (> (queue-length trail) 50)
+          (dequeue! trail))
+
+    w))
+
+(define (draw-game-tick w scene)
   (let ((p (game-pos w)))
    (place-image/align
     (text (format "~s x ~s : ~s" (pos-x p) (pos-y p) (game-tick w)) 12 "black")
     10 10 'left 'top
-    (empty-scene WIDTH HEIGHT))))
+    scene)))
 
 (define (draw-ufo w)
   (let ((p (game-pos w)))
     (place-image IMAGE-of-UFO (pos-x p) (pos-y p)
-                 (draw-game-tick w))))
+                 (draw-game-tick w
+                                 (draw-trail w)))))
+
+(define (draw-trail w)
+  (let ((trail (game-trail w))
+        (size 5))
+    (foldl (lambda (h r) (place-image (circle size "outline" "black")
+                                      (pos-x h)
+                                      (pos-y h)
+                                      r))
+           (empty-scene WIDTH HEIGHT)
+           (queue->list trail))))
 
 (define (move-ufo w x y)
   (let ((p (game-pos w)))
