@@ -21,11 +21,6 @@
         (pos (/ WIDTH 2) (/ HEIGHT 2))
         (make-queue)))
 
-(define (pos-=? a b)
-  (and a b
-       (equal? (pos-x a) (pos-x b))
-       (equal? (pos-y a) (pos-y b))))
-
 ;; TODO: define a macro to wrap up the let forms below
 
 (define (tick w)
