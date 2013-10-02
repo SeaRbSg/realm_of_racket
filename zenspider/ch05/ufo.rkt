@@ -9,6 +9,7 @@
 
 (define WIDTH  640)
 (define HEIGHT 480)
+(define MAX-BUBBLES 50)
 (define IMAGE-of-UFO (bitmap/file "ch05/ufo.png"))
 (define PV 10)
 (define NV (- PV))
@@ -62,7 +63,7 @@
 
     (enqueue! trail new-hist)
 
-    (when (> (queue-length trail) 50)
+    (when (> (queue-length trail) MAX-BUBBLES)
           (dequeue! trail))
 
     w))
