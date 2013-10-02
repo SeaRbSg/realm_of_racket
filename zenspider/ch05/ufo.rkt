@@ -25,8 +25,8 @@
        (equal? (pos-y a) (pos-y b))))
 
 (define (tick w)
-  (unless (void? w)
-    (set-game-tick! w (add1 (game-tick w))))
+  (set-game-tick! w (add1 (game-tick w)))
+
   w)
 
 (define (draw-game-tick w scene)
