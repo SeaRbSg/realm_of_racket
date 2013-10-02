@@ -2,15 +2,17 @@
 
 (require 2htdp/universe 2htdp/image)
 (require data/queue)
+(require racket/runtime-path)
 
 (struct game (tick pos trail) #:mutable #:transparent)
 (struct pos (x y) #:transparent)
 (struct hist pos (t) #:transparent)
 
+(define-runtime-path ufo-path "ufo.png")
 (define WIDTH  640)
 (define HEIGHT 480)
 (define MAX-BUBBLES 50)
-(define IMAGE-of-UFO (bitmap/file "ch05/ufo.png"))
+(define IMAGE-of-UFO (bitmap/file ufo-path))
 (define PV 10)
 (define NV (- PV))
 
