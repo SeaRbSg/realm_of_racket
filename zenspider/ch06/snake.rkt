@@ -4,7 +4,6 @@
 (require racket/runtime-path)
 
 ;; TODO: use 'u 'd 'l 'r
-;; TODO: rewrite opposite-dir? to use a hash or assoc
 ;; TODO: stop using string=? everywhere
 
 ;;; consts
@@ -89,10 +88,11 @@
   (define dir (snake-dir snake))
 
   (img+scene (snake-head snake)
-             (cond [(string=? dir "up")    HEAD-UP-IMG]
-                   [(string=? dir "down")  HEAD-DOWN-IMG]
-                   [(string=? dir "left")  HEAD-LEFT-IMG]
-                   [(string=? dir "right") HEAD-RIGHT-IMG])
+             (case dir
+               [("up")    HEAD-UP-IMG]
+               [("down")  HEAD-DOWN-IMG]
+               [("left")  HEAD-LEFT-IMG]
+               [("right") HEAD-RIGHT-IMG])
              snake-body-scene))
 
 (define (img-list+scene posns img scene)
@@ -153,16 +153,11 @@
   (define head (snake-head sn))
   (define dir  (snake-dir sn))
 
-  ;; (case dir
-  ;;   [("up")    (posn-move head  0 -1)]
-  ;;   [("down")  (posn-move head  0  1)]
-  ;;   [("left")  (posn-move head -1  0)]
-  ;;   [("right") (posn-move head  1  0)])
-
-  (cond [(string=? dir "up")    (posn-move head  0 -1)]
-        [(string=? dir "down")  (posn-move head  0  1)]
-        [(string=? dir "left")  (posn-move head -1  0)]
-        [(string=? dir "right") (posn-move head  1  0)]))
+  (case dir
+    [("up")    (posn-move head  0 -1)]
+    [("down")  (posn-move head  0  1)]
+    [("left")  (posn-move head -1  0)]
+    [("right") (posn-move head  1  0)]))
 
 (define (direct-snake w ke)
   (cond [(dir? ke) (world-change-dir w ke)]
@@ -182,21 +177,12 @@
   (or (= x 0) (= x SIZE)
       (= y 0) (= y SIZE)))
 
-(define (snake-head sn)
-  (first (snake-segs sn)))
+(define (snake-part fun)
+  (lambda (sn) (fun (snake-segs sn))))
 
-(define (snake-body sn)
-  (rest (snake-segs sn)))
-
-(define (snake-tail sn)
-  (last (snake-segs sn)))
-
-;; (define (snake-part fun)
-;;   (lambda (sn) (fun (snake-segs sn))))
-;;
-;; (define snake-head (snake-part first))
-;; (define snake-body (snake-part rest))
-;; (define snake-tail (snake-part last))
+(define snake-head (snake-part first))
+(define snake-body (snake-part rest))
+(define snake-tail (snake-part last))
 
 ;;; goo stuff
 
@@ -215,13 +201,8 @@
 
 (define (renew goos)
   (cond [(empty? goos) empty]
-        [(rotten? (first goos)) (cons (fresh-goo) (renew (rest goos)))]
-        [else (cons (first goos) (renew (rest goos)))]))
-
-;; (define (renew goos)
-;;   (cond [(empty? goos) empty]
-;;         [else (cons (if (rotten? (first goos) (fresh-goo) (first goos)))
-;;                     (renew (rest goos)))]))
+        [else (cons (if (rotten? (first goos)) (fresh-goo) (first goos))
+                    (renew (rest goos)))]))
 
 (define (rotten? g)
   (zero? (goo-expire g)))
@@ -237,27 +218,11 @@
   (posn (+ (posn-x p) dx)
         (+ (posn-y p) dy)))
 
-(define (dir? x)
-  (or (key=? x "up")
-      (key=? x "down")
-      (key=? x "left")
-      (key=? x "right")))
-
-(define (original-opposite-dir? d1 d2)
-  (cond [(string=? d1 "up")    (string=? d2 "down")]
-        [(string=? d1 "down")  (string=? d2 "up")]
-        [(string=? d1 "left")  (string=? d2 "right")]
-        [(string=? d1 "right") (string=? d2 "left")]))
-
-(define (better-opposite-dir? d1 d2)
-  (case d1
-    [("up")    (string=? d2 "down")]
-    [("down")  (string=? d2 "up")]
-    [("left")  (string=? d2 "right")]
-    [("right") (string=? d2 "left")]))
-
 (define OPPOSITES
   '(("up" "down") ("down" "up") ("left" "right") ("right" "left")))
+
+(define (dir? x)
+  (cons? (assoc x OPPOSITES)))
 
 (define (opposite-dir? d1 d2)
   (string=? (cadr (assoc d1 OPPOSITES)) d2))
