@@ -61,12 +61,7 @@
 
 (define (start-snake)
   (big-bang (pit (snake 'r (list (posn 1 1)))
-                 (list (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)))
+                 (build-list (add1 (random 10)) (lambda (x) (fresh-goo))))
 
             (on-tick   next-pit TICK-RATE)
             (on-key    direct-snake)
