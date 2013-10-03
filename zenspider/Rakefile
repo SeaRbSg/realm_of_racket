@@ -7,13 +7,21 @@ def racket path
 end
 
 task :latest do
-  path = Dir["*/*.rkt"].sort.last
+  path = Dir["*/*.rkt"].max_by { |f| File.mtime f }
 
   racket path
 end
 
 task :all do
   homework = Dir["*/*.rkt"].sort.reverse
+
+  homework.each do |path|
+    racket path
+  end
+end
+
+task :test do
+  homework = Dir["ch*/ch*.rkt"].sort.reverse
 
   homework.each do |path|
     racket path
