@@ -132,8 +132,13 @@
   (or (self-colliding? snake) (wall-colliding? snake)))
 
 (define (render-end w)
-  (overlay (text "Game Over" ENDGAME-TEXT-SIZE "black")
-           (render-pit w))) ;; bug: (render-snake-world w)
+  (let* ((mid (/ WIDTH-PX 2))
+         (game-over  (text "Game Over" ENDGAME-TEXT-SIZE "black"))
+         (score-text (format "Score = ~s" (snake-score (pit-snake w))))
+         (score      (text score-text ENDGAME-TEXT-SIZE "black")))
+    (place-image/align game-over mid 0 "middle" "top"
+                       (place-image/align score mid HEIGHT-PX "middle" "bottom"
+                                          (render-pit w)))))
 
 ;;; snake stuff
 
@@ -191,6 +196,9 @@
 (define snake-head (snake-part first))
 (define snake-body (snake-part rest))
 (define snake-tail (snake-part last))
+
+(define (snake-score sn)
+  (length (snake-segs sn)))
 
 ;;; goo stuff
 
