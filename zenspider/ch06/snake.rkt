@@ -3,9 +3,6 @@
 (require 2htdp/universe 2htdp/image)
 (require racket/runtime-path)
 
-;; TODO: use 'u 'd 'l 'r
-;; TODO: stop using string=? everywhere
-
 ;;; consts
 
 ;; time stuff
@@ -34,9 +31,24 @@
 (define SEG-IMG  (bitmap/file SEG-IMG-PATH))
 
 (define HEAD-LEFT-IMG  HEAD-IMG)
-(define HEAD-DOWN-IMG  (rotate 90 HEAD-LEFT-IMG))
+(define HEAD-DOWN-IMG  (rotate 90       HEAD-LEFT-IMG))
 (define HEAD-RIGHT-IMG (flip-horizontal HEAD-LEFT-IMG))
-(define HEAD-UP-IMG    (flip-vertical HEAD-DOWN-IMG))
+(define HEAD-UP-IMG    (flip-vertical   HEAD-DOWN-IMG))
+
+;; direction/mapping stuff
+
+(define OPPOSITES
+  '((u d) (l r)
+    (d u) (r l)))
+
+(define DIRECTIONS
+  '(("up" u) ("down" d) ("left" l) ("right" r)))
+
+(define DIR-TO-HEAD-IMG
+  (list (list 'u HEAD-UP-IMG)
+        (list 'd HEAD-DOWN-IMG)
+        (list 'l HEAD-LEFT-IMG)
+        (list 'r HEAD-RIGHT-IMG)))
 
 ;;; structs
 
@@ -48,7 +60,7 @@
 ;;; top level game stuff
 
 (define (start-snake)
-  (big-bang (pit (snake "right" (list (posn 1 1)))
+  (big-bang (pit (snake 'r (list (posn 1 1)))
                  (list (fresh-goo)
                        (fresh-goo)
                        (fresh-goo)
@@ -88,11 +100,7 @@
   (define dir (snake-dir snake))
 
   (img+scene (snake-head snake)
-             (case dir
-               [("up")    HEAD-UP-IMG]
-               [("down")  HEAD-DOWN-IMG]
-               [("left")  HEAD-LEFT-IMG]
-               [("right") HEAD-RIGHT-IMG])
+             (cadr (assoc dir DIR-TO-HEAD-IMG))
              snake-body-scene))
 
 (define (img-list+scene posns img scene)
@@ -154,13 +162,13 @@
   (define dir  (snake-dir sn))
 
   (case dir
-    [("up")    (posn-move head  0 -1)]
-    [("down")  (posn-move head  0  1)]
-    [("left")  (posn-move head -1  0)]
-    [("right") (posn-move head  1  0)]))
+    [(u) (posn-move head  0 -1)]
+    [(d) (posn-move head  0  1)]
+    [(l) (posn-move head -1  0)]
+    [(r) (posn-move head  1  0)]))
 
 (define (direct-snake w ke)
-  (cond [(dir? ke) (world-change-dir w ke)]
+  (cond [(dir? ke) (world-change-dir w (map-direction ke))]
         [else w]))
 
 (define (snake-change-dir sn d)
@@ -218,14 +226,14 @@
   (posn (+ (posn-x p) dx)
         (+ (posn-y p) dy)))
 
-(define OPPOSITES
-  '(("up" "down") ("down" "up") ("left" "right") ("right" "left")))
+(define (map-direction d)
+  (cadr (assoc d DIRECTIONS)))
 
 (define (dir? x)
-  (cons? (assoc x OPPOSITES)))
+  (cons? (assoc x DIRECTIONS)))
 
 (define (opposite-dir? d1 d2)
-  (string=? (cadr (assoc d1 OPPOSITES)) d2))
+  (eq? (cadr (assoc d1 OPPOSITES)) d2))
 
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
