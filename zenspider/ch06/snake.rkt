@@ -23,10 +23,12 @@
 (define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
 
 (define-runtime-path GOO-IMG-PATH  "goo.gif")
+(define-runtime-path GOO2-IMG-PATH  "goo2.png")
 (define-runtime-path HEAD-IMG-PATH "head.gif")
 (define-runtime-path SEG-IMG-PATH  "body.gif")
 
 (define GOO-IMG  (bitmap/file GOO-IMG-PATH))
+(define GOO2-IMG  (bitmap/file GOO2-IMG-PATH))
 (define HEAD-IMG (bitmap/file HEAD-IMG-PATH))
 (define SEG-IMG  (bitmap/file SEG-IMG-PATH))
 
@@ -55,7 +57,7 @@
 (struct pit   (snake goos) #:transparent)
 (struct snake (dir segs)   #:transparent)
 (struct posn  (x y)        #:transparent)
-(struct goo   (loc expire) #:transparent)
+(struct goo   (loc expire score) #:transparent)
 
 ;;; top level game stuff
 
@@ -74,7 +76,7 @@
   (define goo-to-eat (can-eat snake goos))
 
   (if goo-to-eat
-      (pit (grow snake)    (age-goo (eat goos goo-to-eat)))
+      (pit (grow snake (goo-score goo-to-eat)) (age-goo (eat goos goo-to-eat)))
       (pit (slither snake) (age-goo goos))))
 
 (define (world-change-dir w d)
@@ -110,17 +112,14 @@
                (* (posn-y posn) SEG-SIZE)
                scene))
 
-(define (original-goo-list+scene goos scene)
-  (define (get-posns-from-goo goos)
-    (cond [(empty? goos) empty]
-          [else (cons (goo-loc (first goos))
-                      (get-posns-from-goo (rest goos)))]))
-
-  (img-list+scene (get-posns-from-goo goos) GOO-IMG scene))
+(define GOO-IMGS
+  (list #f GOO-IMG GOO2-IMG))
 
 ;; recursion is nice, but come on... you can't beat map here:
 (define (goo-list+scene goos scene)
-  (img-list+scene (map goo-loc goos) GOO-IMG scene))
+  (foldl (lambda (g s)
+           (let ((img (list-ref GOO-IMGS (goo-score g))))
+             (img+scene (goo-loc g) img s))) scene goos))
 
 (define (dead? w)
   (define snake (pit-snake w))
@@ -145,9 +144,12 @@
 (define (close? s g)
   (posn=? s (goo-loc g)))
 
-(define (grow sn)
-  (snake (snake-dir sn)
-         (cons (next-head sn) (snake-segs sn))))
+(define (grow sn n)
+  (define grow-1 (lambda (sn)
+                   (snake (snake-dir sn) (cons (next-head sn) (snake-segs sn)))))
+  (if (> n 1)
+      (grow (slither (grow-1 sn)) (sub1 n))
+      (grow-1 sn)))
 
 (define (slither sn)
   (snake (snake-dir sn)
@@ -208,7 +210,7 @@
         [else (cons (decay (first goos)) (rot (rest goos)))]))
 
 (define (decay g)
-  (goo (goo-loc g) (sub1 (goo-expire g))))
+  (goo (goo-loc g) (sub1 (goo-expire g)) (goo-score g)))
 
 (define (renew goos)
   (cond [(empty? goos) empty]
@@ -221,7 +223,8 @@
 (define (fresh-goo)
   (goo (posn (add1 (random (sub1 SIZE)))
              (add1 (random (sub1 SIZE))))
-       EXPIRATION-TIME))
+       EXPIRATION-TIME
+       (add1 (random 2))))
 
 ;;; misc support
 
