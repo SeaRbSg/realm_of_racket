@@ -70,14 +70,20 @@
             (to-draw   render-pit)
             (stop-when dead? render-end)))
 
+(define (copy-pit p new-snake new-goos)
+  (pit (or new-snake (pit-snake p))
+       (or new-goos  (pit-goos  p))))
+
 (define (next-pit w)
   (define snake (pit-snake w))
   (define goos (pit-goos w))
   (define goo-to-eat (can-eat snake goos))
 
   (if goo-to-eat
-      (pit (grow snake (goo-score goo-to-eat)) (age-goo (eat goos goo-to-eat)))
-      (pit (slither snake) (age-goo goos))))
+      (copy-pit w
+                (grow snake (goo-score goo-to-eat))
+                (age-goo (eat goos goo-to-eat)))
+      (copy-pit w (slither snake) (age-goo goos))))
 
 (define (world-change-dir w d)
   (define the-snake (pit-snake w))
@@ -86,7 +92,7 @@
               (cons? (rest (snake-segs the-snake))))
          (stop-with w)]
         [else
-         (pit (snake-change-dir the-snake d) (pit-goos w))]))
+         (copy-pit w (snake-change-dir the-snake d) #f)]))
 
 (define (render-pit w)
   (snake+scene (pit-snake w)
