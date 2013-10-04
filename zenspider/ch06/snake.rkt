@@ -17,10 +17,11 @@
 (define SIZE 30)
 (define HEIGHT-PX (* SEG-SIZE 30))
 (define WIDTH-PX  (* SEG-SIZE 30))
+(define TRIGGER-TIME (+ 5 (current-seconds)))
 
 ;; image stuff
 
-(define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
+(define MT-SCENE #f)
 
 (define-runtime-path GOO-IMG-PATH  "goo.gif")
 (define-runtime-path GOO2-IMG-PATH  "goo2.png")
@@ -62,21 +63,22 @@
 ;;; top level game stuff
 
 (define (start-snake)
-  (define walls (build-list (random 5) (lambda (x) (random-pos))))
-
-  (set! MT-SCENE
-        (foldl (lambda (p sc) (img+scene p (square SIZE 'solid 'black) sc))
-               MT-SCENE
-               walls))
-
   (big-bang (pit (snake 'r (list (posn 1 1)))
                  (build-list (add1 (random 10)) (lambda (x) (fresh-goo)))
-                 walls)
+                 (randomize-walls))
 
             (on-tick   next-pit TICK-RATE)
             (on-key    direct-snake)
             (to-draw   render-pit)
             (stop-when dead? render-end)))
+
+(define (randomize-walls)
+  (let ((walls (build-list (random 5) (lambda (x) (random-pos)))))
+    (set! MT-SCENE
+          (foldl (lambda (p sc) (img+scene p (square SIZE 'solid 'black) sc))
+                 (empty-scene WIDTH-PX HEIGHT-PX)
+                 walls))
+    walls))
 
 (define (copy-pit p new-snake new-goos new-walls)
   (pit (or new-snake (pit-snake p))
@@ -87,13 +89,18 @@
   (define snake (pit-snake w))
   (define goos (pit-goos w))
   (define goo-to-eat (can-eat snake goos))
+  (define walls (pit-walls w))
+
+  (when (>= (current-seconds) TRIGGER-TIME)
+    (set! TRIGGER-TIME (+ 5 (current-seconds)))
+    (set! walls (randomize-walls)))
 
   (if goo-to-eat
       (copy-pit w
                 (grow snake (goo-score goo-to-eat))
                 (age-goo (eat goos goo-to-eat))
-                #f)
-      (copy-pit w (slither snake) (age-goo goos) #f)))
+                walls)
+      (copy-pit w (slither snake) (age-goo goos) walls)))
 
 (define (world-change-dir w d)
   (define the-snake (pit-snake w))
