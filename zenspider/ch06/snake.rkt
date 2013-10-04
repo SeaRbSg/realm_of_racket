@@ -220,9 +220,12 @@
 (define (rotten? g)
   (zero? (goo-expire g)))
 
+(define (random-pos)
+  (posn (add1 (random (sub1 SIZE)))
+        (add1 (random (sub1 SIZE)))))
+
 (define (fresh-goo)
-  (goo (posn (add1 (random (sub1 SIZE)))
-             (add1 (random (sub1 SIZE))))
+  (goo (random-pos)
        EXPIRATION-TIME
        (add1 (random 2))))
 
