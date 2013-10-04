@@ -54,7 +54,7 @@
 
 ;;; structs
 
-(struct pit   (snake goos) #:transparent)
+(struct pit   (snake goos walls) #:transparent)
 (struct snake (dir segs)   #:transparent)
 (struct posn  (x y)        #:transparent)
 (struct goo   (loc expire score) #:transparent)
@@ -62,17 +62,26 @@
 ;;; top level game stuff
 
 (define (start-snake)
+  (define walls (build-list (random 5) (lambda (x) (random-pos))))
+
+  (set! MT-SCENE
+        (foldl (lambda (p sc) (img+scene p (square SIZE 'solid 'black) sc))
+               MT-SCENE
+               walls))
+
   (big-bang (pit (snake 'r (list (posn 1 1)))
-                 (build-list (add1 (random 10)) (lambda (x) (fresh-goo))))
+                 (build-list (add1 (random 10)) (lambda (x) (fresh-goo)))
+                 walls)
 
             (on-tick   next-pit TICK-RATE)
             (on-key    direct-snake)
             (to-draw   render-pit)
             (stop-when dead? render-end)))
 
-(define (copy-pit p new-snake new-goos)
+(define (copy-pit p new-snake new-goos new-walls)
   (pit (or new-snake (pit-snake p))
-       (or new-goos  (pit-goos  p))))
+       (or new-goos  (pit-goos  p))
+       (or new-walls (pit-walls p))))
 
 (define (next-pit w)
   (define snake (pit-snake w))
@@ -82,8 +91,9 @@
   (if goo-to-eat
       (copy-pit w
                 (grow snake (goo-score goo-to-eat))
-                (age-goo (eat goos goo-to-eat)))
-      (copy-pit w (slither snake) (age-goo goos))))
+                (age-goo (eat goos goo-to-eat))
+                #f)
+      (copy-pit w (slither snake) (age-goo goos) #f)))
 
 (define (world-change-dir w d)
   (define the-snake (pit-snake w))
@@ -92,7 +102,7 @@
               (cons? (rest (snake-segs the-snake))))
          (stop-with w)]
         [else
-         (copy-pit w (snake-change-dir the-snake d) #f)]))
+         (copy-pit w (snake-change-dir the-snake d) #f #f)]))
 
 (define (render-pit w)
   (snake+scene (pit-snake w)
@@ -129,7 +139,7 @@
 
 (define (dead? w)
   (define snake (pit-snake w))
-  (or (self-colliding? snake) (wall-colliding? snake)))
+  (or (self-colliding? snake) (wall-colliding? snake (pit-walls w))))
 
 (define (render-end w)
   (let* ((mid (/ WIDTH-PX 2))
@@ -185,13 +195,14 @@
 (define (self-colliding? snake)
   (cons? (member (snake-head snake) (snake-body snake))))
 
-(define (wall-colliding? snake)
+(define (wall-colliding? snake walls)
   (define h (snake-head snake))
   (define x (posn-x h))
   (define y (posn-y h))
 
   (or (= x 0) (= x SIZE)
-      (= y 0) (= y SIZE)))
+      (= y 0) (= y SIZE)
+      (cons? (member (snake-head snake) walls))))
 
 (define (snake-part fun)
   (lambda (sn) (fun (snake-segs sn))))
