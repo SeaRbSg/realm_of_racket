@@ -108,12 +108,6 @@
             (age-goo goos)
             walls))
 
-(define (world-change-dir1 w d)
-  (copy-pit w (snake-change-dir (pit-snake1 w) d) (pit-snake2 w) #f #f))
-
-(define (world-change-dir2 w d)
-  (copy-pit w (pit-snake1 w) (snake-change-dir (pit-snake2 w) d) #f #f))
-
 (define (render-pit w)
   (define sn1 (pit-snake1 w))
   (define sn2 (pit-snake2 w))
@@ -209,8 +203,10 @@
     [(r) (posn-move head  1  0)]))
 
 (define (direct-snake w ke)
-  (cond [(dir1? ke) (world-change-dir1 w (map-direction1 ke))]
-        [(dir2? ke) (world-change-dir2 w (map-direction2 ke))]
+  (cond [(dir1? ke)
+         (copy-pit w (snake-change-dir (pit-snake1 w) d) (pit-snake2 w) #f #f)]
+        [(dir2? ke)
+         (copy-pit w (pit-snake1 w) (snake-change-dir (pit-snake2 w) d) #f #f)]
         [else w]))
 
 (define (snake-change-dir sn d)
