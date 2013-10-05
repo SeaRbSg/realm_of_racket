@@ -204,9 +204,15 @@
 
 (define (direct-snake w ke)
   (cond [(dir1? ke)
-         (copy-pit w (snake-change-dir (pit-snake1 w) d) (pit-snake2 w) #f #f)]
+         (copy-pit w
+                   (snake-change-dir (pit-snake1 w) (map-direction1 ke))
+                   (pit-snake2 w)
+                   #f #f)]
         [(dir2? ke)
-         (copy-pit w (pit-snake1 w) (snake-change-dir (pit-snake2 w) d) #f #f)]
+         (copy-pit w
+                   (pit-snake1 w)
+                   (snake-change-dir (pit-snake2 w) (map-direction2 ke))
+                   #f #f)]
         [else w]))
 
 (define (snake-change-dir sn d)
