@@ -9,7 +9,7 @@
 ;; CONSTANTS
 (define TICK-RATE 1/5)
 (define SIZE 30)
-(define SEG-SIZE 15)
+(define SEG-SIZE 20)
 (define EXPIRATION-TIME 150)
 
 (define WIDTH-PX  (* SEG-SIZE SIZE))
