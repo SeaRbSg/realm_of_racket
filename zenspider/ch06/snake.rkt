@@ -24,12 +24,12 @@
 (define MT-SCENE #f)
 
 (define-runtime-path GOO-IMG-PATH  "goo.gif")
-(define-runtime-path GOO2-IMG-PATH  "goo2.png")
+(define-runtime-path GOO2-IMG-PATH "goo2.png")
 (define-runtime-path HEAD-IMG-PATH "head.gif")
 (define-runtime-path SEG-IMG-PATH  "body.gif")
 
 (define GOO-IMG  (bitmap/file GOO-IMG-PATH))
-(define GOO2-IMG  (bitmap/file GOO2-IMG-PATH))
+(define GOO2-IMG (bitmap/file GOO2-IMG-PATH))
 (define HEAD-IMG (bitmap/file HEAD-IMG-PATH))
 (define SEG-IMG  (bitmap/file SEG-IMG-PATH))
 
