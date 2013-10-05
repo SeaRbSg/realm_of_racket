@@ -257,7 +257,21 @@
 ;;    [12]P12 (**) Decode a run-length encoded list.
 ;;           Given a run-length code list generated as specified in problem
 ;;           P11. Construct its uncompressed version.
-;;
+
+(define (decode l)
+  (cond [(empty? l) empty]
+        [(cons? (first l))
+         (let* ((l2 (first l))
+                (n (sub1 (first l2)))
+                (s (second l2)))
+               (cons s
+                     (decode (cons (if (= n 1) s (list n s))
+                                   (rest l)))))]
+        [else (cons (first l) (decode (rest l)))]))
+
+(check-equal? (decode '((4 a) b (2 c) (2 a) d (4 e)))
+              '(a a a a b c c a a d e e e e))
+
 ;;    [13]P13 (**) Run-length encoding of a list (direct solution).
 ;;           Implement the so-called run-length encoding data compression
 ;;           method directly. I.e. don't explicitly create the sublists
@@ -267,22 +281,73 @@
 ;;           Example:
 ;;           * (encode-direct '(a a a a b c c a a d e e e e))
 ;;           ((4 A) B (2 C) (2 A) D (4 E))
-;;
+
+(define (encode-direct l)
+  (define (inner-encode l r)
+    (cond [(empty? l) r]
+          [else
+           (let ((n (caar r))
+                 (s (cadar r)))
+             (if (equal? s (first l))
+                 (inner-encode (rest l) (cons (list (add1 n) s)  (rest r)))
+                 (inner-encode (rest l) (cons (list 1 (first l)) r))))]))
+  (define (cleanup l)
+    (reverse (map (lambda (x) (if (= 1 (first x)) (second x) x)) l)))
+
+  (cleanup (inner-encode (rest l) (list (list 1 (first l))))))
+
+(check-equal? (encode-direct '(a a a a b c c a a d e e e e))
+              '((4 a) b (2 c) (2 a) d (4 e)))
+
 ;;    [14]P14 (*) Duplicate the elements of a list.
 ;;           Example:
 ;;           * (dupli '(a b c c d))
 ;;           (A A B B C C C C D D)
-;;
+
+(define (dupli l)
+  (cond [(empty? l) empty]
+        [else (cons (first l)
+                    (cons (first l)
+                          (dupli (rest l))))]))
+
+(check-equal? (dupli '(a b c c d))
+              '(a a b b c c c c d d))
+
 ;;    [15]P15 (**) Replicate the elements of a list a given number of times.
 ;;           Example:
 ;;           * (repli '(a b c) 3)
 ;;           (A A A B B B C C C)
-;;
+
+(define (repli l n)
+  (define (build s n)
+    (if (= n 0) '()
+        (cons s (build s (sub1 n)))))
+  (cond [(empty? l) empty]
+        [else (append (build (first l) n) (repli (rest l) n))]))
+
+;; I could also avoid append using cons and then my-flatten
+
+(check-equal? (repli '(a b c) 3)
+              '(a a a b b b c c c))
+
 ;;    [16]P16 (**) Drop every N'th element from a list.
 ;;           Example:
 ;;           * (drop '(a b c d e f g h i k) 3)
 ;;           (A B D E G H K)
-;;
+
+(define (drop l n)
+  (define (inner-drop l c)
+    (cond [(empty? l) empty]
+          [(zero? (modulo c n))
+           (inner-drop (rest l) (add1 c))]
+          [else
+           (cons (first l) (inner-drop (rest l) (add1 c)))]))
+
+  (inner-drop l 1))
+
+(check-equal? (drop '(a b c d e f g h i k) 3)
+              '(a b d e g h k))
+
 ;;    [17]P17 (*) Split a list into two parts; the length of the first part
 ;;           is given.
 ;;           Do not use any predefined predicates.
