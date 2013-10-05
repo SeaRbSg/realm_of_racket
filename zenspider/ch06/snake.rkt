@@ -40,10 +40,6 @@
 
 ;; direction/mapping stuff
 
-(define OPPOSITES
-  '((u d) (l r)
-    (d u) (r l)))
-
 (define DIRECTIONS1
   '(("up" u) ("down" d) ("left" l) ("right" r)))
 
@@ -113,22 +109,10 @@
             walls))
 
 (define (world-change-dir1 w d)
-  (define sn (pit-snake1 w))
-
-  (cond [(and (opposite-dir? (snake-dir sn) d)
-              (cons? (rest (snake-segs sn))))
-         (stop-with w)]
-        [else
-         (copy-pit w (snake-change-dir sn d) (pit-snake2 w) #f #f)]))
+  (copy-pit w (snake-change-dir (pit-snake1 w) d) (pit-snake2 w) #f #f))
 
 (define (world-change-dir2 w d)
-  (define sn (pit-snake2 w))
-
-  (cond [(and (opposite-dir? (snake-dir sn) d)
-              (cons? (rest (snake-segs sn))))
-         (stop-with w)]
-        [else
-         (copy-pit w (pit-snake1 w) (snake-change-dir sn d) #f #f)]))
+  (copy-pit w (pit-snake1 w) (snake-change-dir (pit-snake2 w) d) #f #f))
 
 (define (render-pit w)
   (define sn1 (pit-snake1 w))
@@ -312,9 +296,6 @@
 
 (define (dir2? x)
   (hash-key? DIRECTIONS2 x))
-
-(define (opposite-dir? d1 d2)
-  (eq? (hash-get OPPOSITES d1) d2))
 
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
