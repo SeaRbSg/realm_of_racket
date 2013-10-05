@@ -20,9 +20,12 @@
       l
       (my-last (rest l))))
 
-(check-equal? '()  (my-last '()))
-(check-equal? '(a) (my-last '(a)))
-(check-equal? '(d) (my-last '(a b c d)))
+(check-equal? (my-last '())
+              '())
+(check-equal? (my-last '(a))
+              '(a))
+(check-equal? (my-last '(a b c d))
+              '(d))
 
 ;;    [2]P02 (*) Find the last but one box of a list.
 ;;           Example:
@@ -34,10 +37,14 @@
       l
       (my-but-last (rest l))))
 
-(check-equal? '()    (my-but-last '()))
-(check-equal? '(a)   (my-but-last '(a)))
-(check-equal? '(a b) (my-but-last '(a b)))
-(check-equal? '(c d) (my-but-last '(a b c d)))
+(check-equal? (my-but-last '())
+              '())
+(check-equal? (my-but-last '(a))
+              '(a))
+(check-equal? (my-but-last '(a b))
+              '(a b))
+(check-equal? (my-but-last '(a b c d))
+              '(c d))
 
 ;;    [3]P03 (*) Find the K'th element of a list.
 ;;           The first element in the list is number 1.
@@ -64,9 +71,12 @@
       (first l) ; exception handled by contract in first
       (element-at (rest l) (sub1 n))))
 
-(check-equal? 'a           (element-at '(a b c d e) 1))
-(check-equal? 'c           (element-at '(a b c d e) 3))
-(check-exn exn:fail? (λ () (element-at '(a b c d e) 6)))
+(check-equal? (element-at '(a b c d e) 1)
+              'a)
+(check-equal? (element-at '(a b c d e) 3)
+              'c)
+(check-exn exn:fail?
+           (λ () (element-at '(a b c d e) 6)))
 
 ;;    [4]P04 (*) Find the number of elements of a list.
 
@@ -75,9 +85,12 @@
       0
       (add1 (list-size (rest l)))))
 
-(check-equal? 0 (list-size empty))
-(check-equal? 1 (list-size '(a)))
-(check-equal? 5 (list-size '(a b c d e)))
+(check-equal? (list-size empty)
+              0)
+(check-equal? (list-size '(a))
+              1)
+(check-equal? (list-size '(a b c d e))
+              5)
 
 ;;    [5]P05 (*) Reverse a list.
 
@@ -86,9 +99,12 @@
       l
       (append (reverse-list (rest l)) (list (first l))))) ; cheating?
 
-(check-equal? '()          (reverse-list '()))
-(check-equal? '(a)         (reverse-list '(a)))
-(check-equal? '(e d c b a) (reverse-list '(a b c d e)))
+(check-equal? (reverse-list '())
+              '())
+(check-equal? (reverse-list '(a))
+              '(a))
+(check-equal? (reverse-list '(a b c d e))
+              '(e d c b a))
 
 ;;    [6]P06 (*) Find out whether a list is a palindrome.
 ;;           A palindrome can be read forward or backward; e.g. (x a m a x).
