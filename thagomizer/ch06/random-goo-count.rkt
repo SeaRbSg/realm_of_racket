@@ -8,8 +8,8 @@
 
 ;; CONSTANTS
 (define TICK-RATE 1/5)
-(define SIZE 30)
-(define SEG-SIZE 20)
+(define SIZE 25)
+(define SEG-SIZE 25)
 (define EXPIRATION-TIME 150)
 (define MAX-GOOS 10)
 
