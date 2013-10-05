@@ -44,8 +44,12 @@
   '((u d) (l r)
     (d u) (r l)))
 
-(define DIRECTIONS
+(define DIRECTIONS1
   '(("up" u) ("down" d) ("left" l) ("right" r)))
+
+(define DIRECTIONS2
+  '(("w" u) ("s" d) ("a" l) ("d" r)   ; qwerty
+    ("," u) ("o" d) ("a" l) ("e" r))) ; dvorak
 
 (define DIR-TO-HEAD-IMG
   (list (list 'u HEAD-UP-IMG)
@@ -55,7 +59,7 @@
 
 ;;; structs
 
-(struct pit   (snake goos walls) #:transparent)
+(struct pit   (snake1 snake2 goos walls) #:transparent)
 (struct snake (dir segs)   #:transparent)
 (struct posn  (x y)        #:transparent)
 (struct goo   (loc expire score) #:transparent)
@@ -64,6 +68,7 @@
 
 (define (start-snake)
   (big-bang (pit (snake 'r (list (posn 1 1)))
+                 (snake 'l (list (posn (sub1 SIZE) (sub1 SIZE))))
                  (build-list (add1 (random 10)) (lambda (x) (fresh-goo)))
                  (randomize-walls))
 
@@ -80,47 +85,63 @@
                  walls))
     walls))
 
-(define (copy-pit p new-snake new-goos new-walls)
-  (pit (or new-snake (pit-snake p))
-       (or new-goos  (pit-goos  p))
-       (or new-walls (pit-walls p))))
+(define (copy-pit p new-snake1 new-snake2 new-goos new-walls)
+  (pit (or new-snake1 (pit-snake1 p))
+       (or new-snake2 (pit-snake2 p))
+       (or new-goos   (pit-goos  p))
+       (or new-walls  (pit-walls p))))
 
 (define (next-pit w)
-  (define snake (pit-snake w))
-  (define goos (pit-goos w))
-  (define goo-to-eat (can-eat snake goos))
-  (define walls (pit-walls w))
+  (define sn1         (pit-snake1 w))
+  (define sn2         (pit-snake2 w))
+  (define goos        (pit-goos w))
+  (define walls       (pit-walls w))
+  (define goo-to-eat1 (can-eat sn1 goos))
+  (define goo-to-eat2 (can-eat sn2 goos))
 
   (when (>= (current-seconds) TRIGGER-TIME)
     (set! TRIGGER-TIME (+ 5 (current-seconds)))
     (set! walls (randomize-walls)))
 
-  (if goo-to-eat
-      (copy-pit w
-                (grow snake (goo-score goo-to-eat))
-                (age-goo (eat goos goo-to-eat))
-                walls)
-      (copy-pit w (slither snake) (age-goo goos) walls)))
+  (when goo-to-eat1 (set! goos (eat goos goo-to-eat1)))
+  (when goo-to-eat2 (set! goos (eat goos goo-to-eat2)))
 
-(define (world-change-dir w d)
-  (define the-snake (pit-snake w))
+  (copy-pit w
+            (if goo-to-eat1 (grow sn1 (goo-score goo-to-eat1)) (slither sn1))
+            (if goo-to-eat2 (grow sn2 (goo-score goo-to-eat2)) (slither sn2))
+            (age-goo goos)
+            walls))
 
-  (cond [(and (opposite-dir? (snake-dir the-snake) d)
-              (cons? (rest (snake-segs the-snake))))
+(define (world-change-dir1 w d)
+  (define sn (pit-snake1 w))
+
+  (cond [(and (opposite-dir? (snake-dir sn) d)
+              (cons? (rest (snake-segs sn))))
          (stop-with w)]
         [else
-         (copy-pit w (snake-change-dir the-snake d) #f #f)]))
+         (copy-pit w (snake-change-dir sn d) (pit-snake2 w) #f #f)]))
+
+(define (world-change-dir2 w d)
+  (define sn (pit-snake2 w))
+
+  (cond [(and (opposite-dir? (snake-dir sn) d)
+              (cons? (rest (snake-segs sn))))
+         (stop-with w)]
+        [else
+         (copy-pit w (pit-snake1 w) (snake-change-dir sn d) #f #f)]))
 
 (define (render-pit w)
-  (snake+scene (pit-snake w)
-               (goo-list+scene (pit-goos w) MT-SCENE)))
+  (define sn1 (pit-snake1 w))
+  (define sn2 (pit-snake2 w))
+
+  (snake+scene sn1 (snake+scene sn2 (goo-list+scene (pit-goos w) MT-SCENE))))
 
 (define (snake+scene snake scene)
   (define snake-body-scene (img-list+scene (snake-body snake) SEG-IMG scene))
   (define dir (snake-dir snake))
 
   (img+scene (snake-head snake)
-             (cadr (assoc dir DIR-TO-HEAD-IMG))
+             (hash-get DIR-TO-HEAD-IMG dir)
              snake-body-scene))
 
 (define (img-list+scene posns img scene)
@@ -145,13 +166,24 @@
              (img+scene (goo-loc g) img s))) scene goos))
 
 (define (dead? w)
-  (define snake (pit-snake w))
-  (or (self-colliding? snake) (wall-colliding? snake (pit-walls w))))
+  (define sn1 (pit-snake1 w))
+  (define sn2 (pit-snake2 w))
+  (define walls (pit-walls w))
+
+  (or (wall-colliding? sn1 walls)
+      (wall-colliding? sn2 walls)
+      (self-colliding? sn1)
+      (self-colliding? sn2)
+      (snake-colliding? sn1 sn2)
+      (snake-colliding? sn2 sn1)))
 
 (define (render-end w)
+  (define sn1 (pit-snake1 w))
+  (define sn2 (pit-snake2 w))
+
   (let* ((mid (/ WIDTH-PX 2))
          (game-over  (text "Game Over" ENDGAME-TEXT-SIZE "black"))
-         (score-text (format "Score = ~s" (snake-score (pit-snake w))))
+         (score-text (format "~s vs ~s" (snake-score sn1) (snake-score sn2)))
          (score      (text score-text ENDGAME-TEXT-SIZE "black")))
     (place-image/align game-over mid 0 "middle" "top"
                        (place-image/align score mid HEIGHT-PX "middle" "bottom"
@@ -193,14 +225,18 @@
     [(r) (posn-move head  1  0)]))
 
 (define (direct-snake w ke)
-  (cond [(dir? ke) (world-change-dir w (map-direction ke))]
+  (cond [(dir1? ke) (world-change-dir1 w (map-direction1 ke))]
+        [(dir2? ke) (world-change-dir2 w (map-direction2 ke))]
         [else w]))
 
 (define (snake-change-dir sn d)
   (snake d (snake-segs sn)))
 
 (define (self-colliding? snake)
-  (cons? (member (snake-head snake) (snake-body snake))))
+  (snake-colliding? snake snake))
+
+(define (snake-colliding? sn1 sn2)
+  (cons? (member (snake-head sn1) (snake-body sn2))))
 
 (define (wall-colliding? snake walls)
   (define h (snake-head snake))
@@ -259,14 +295,26 @@
   (posn (+ (posn-x p) dx)
         (+ (posn-y p) dy)))
 
-(define (map-direction d)
-  (cadr (assoc d DIRECTIONS)))
+(define (hash-get hash key)
+  (cadr (assoc key hash)))
 
-(define (dir? x)
-  (cons? (assoc x DIRECTIONS)))
+(define (hash-key? hash key)
+  (cons? (assoc key hash)))
+
+(define (map-direction1 d)
+  (hash-get DIRECTIONS1 d))
+
+(define (map-direction2 d)
+  (hash-get DIRECTIONS2 d))
+
+(define (dir1? x)
+  (hash-key? DIRECTIONS1 x))
+
+(define (dir2? x)
+  (hash-key? DIRECTIONS2 x))
 
 (define (opposite-dir? d1 d2)
-  (eq? (cadr (assoc d1 OPPOSITES)) d2))
+  (eq? (hash-get OPPOSITES d1) d2))
 
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
