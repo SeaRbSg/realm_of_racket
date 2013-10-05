@@ -125,7 +125,24 @@
 ;;           * (my-flatten '(a (b (c d) e)))
 ;;           (A B C D E)
 ;;           Hint: Use the predefined functions list and append.
-;;
+
+(define (my-flatten l)
+  (cond [(empty? l) empty]
+        [(cons? (first l))
+         (append (my-flatten (first l))
+                 (my-flatten (rest l)))]
+        [else (cons (first l)
+                    (my-flatten (rest l)))]))
+
+(check-equal? (my-flatten '(a b c d e))
+              '(a b c d e))
+
+(check-equal? (my-flatten '((a) b c d e))
+              '(a b c d e))
+
+(check-equal? (my-flatten '(a (b (c d) e)))
+              '(a b c d e))
+
 ;;    [8]P08 (**) Eliminate consecutive duplicates of list elements.
 ;;           If a list contains repeated elements they should be replaced
 ;;           with a single copy of the element. The order of the elements
@@ -133,14 +150,68 @@
 ;;           Example:
 ;;           * (compress '(a a a a b c c a a d e e e e))
 ;;           (A B C A D E)
-;;
+
+(define (compress l)
+  (cond [(empty? l) empty]
+        [(empty? (rest l)) l]
+        [(equal? (first l) (second l)) (compress (rest l))]
+        [else (cons (first l) (compress (rest l)))]))
+
+(check-equal? (compress '(a b c))
+              '(a b c))
+
+(check-equal? (compress '(a b b b c))
+              '(a b c))
+
+(check-equal? (compress '(a a a b b b c c c a a))
+              '(a b c a))
+
 ;;    [9]P09 (**) Pack consecutive duplicates of list elements into sublists.
 ;;           If a list contains repeated elements they should be placed in
 ;;           separate sublists.
 ;;           Example:
 ;;           * (pack '(a a a a b c c a a d e e e e))
 ;;           ((A A A A) (B) (C C) (A A) (D) (E E E E))
-;;
+
+(define (pack1 l)
+  (define (inner-pack l curr result)
+    (cond [(empty? l) (reverse (cons curr result))]
+          [(empty? curr)
+           (inner-pack (rest l) (list (first l)) result)]
+          [(equal? (first curr) (first l))
+           (inner-pack (rest l) (cons (first l) curr) result)]
+          [else
+           (inner-pack l        empty                 (cons curr result))]))
+
+  (inner-pack l empty empty))
+
+(define (pack2 l)
+  (define (inner-pack l curr result)
+    (cond [(empty? l) (reverse (cons curr result))]
+          [(or (empty? curr) (equal? (first curr) (first l)))
+           (inner-pack (rest l) (cons (first l) curr) result)]
+          [else
+           (inner-pack l        empty                 (cons curr result))]))
+
+  (inner-pack l empty empty))
+
+(define (pack3 l)
+  (define (inner-pack l curr result)
+    (cond [(empty? l) (reverse (cons curr result))]
+          [(equal? (first curr) (first l))
+           (inner-pack (rest l) (cons (first l) curr) result)]
+          [else
+           (inner-pack (rest l) (list (first l))      (cons curr result))]))
+
+  (inner-pack (rest l) (list (first l)) empty))
+
+(check-equal? (pack1 '(a a a a b c c a a d e e e e))
+              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+(check-equal? (pack2 '(a a a a b c c a a d e e e e))
+              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+(check-equal? (pack3 '(a a a a b c c a a d e e e e))
+              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+
 ;;    [10]P10 (*) Run-length encoding of a list.
 ;;           Use the result of problem P09 to implement the so-called
 ;;           run-length encoding data compression method. Consecutive
@@ -149,7 +220,22 @@
 ;;           Example:
 ;;           * (encode '(a a a a b c c a a d e e e e))
 ;;           ((4 A) (1 B) (2 C) (2 A) (1 D)(4 E))
-;;
+
+(define (encode1 l)
+  (define (inner-encode l)
+    (cond [(empty? l) empty]
+          [else (let ((l2 (first l)))
+                  (cons (list (length l2) (first l2)) (inner-encode (rest l))))]))
+  (inner-encode (pack3 l)))
+
+(define (encode2 l)
+  (map (lambda (l) (list (length l) (first l))) (pack3 l)))
+
+(check-equal? (encode1 '(a a a a b c c a a d e e e e))
+              '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e)))
+(check-equal? (encode2 '(a a a a b c c a a d e e e e))
+              '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e)))
+
 ;;    [11]P11 (*) Modified run-length encoding.
 ;;           Modify the result of problem P10 in such a way that if an
 ;;           element has no duplicates it is simply copied into the result
@@ -158,7 +244,16 @@
 ;;           Example:
 ;;           * (encode-modified '(a a a a b c c a a d e e e e))
 ;;           ((4 A) B (2 C) (2 A) D (4 E))
-;;
+
+(define (encode-modified l)
+  (define encoder (lambda (l)
+                    (let ((len (length l)))
+                      (if (= len 1) (first l) (list len (first l))))))
+  (map encoder (pack3 l)))
+
+(check-equal? (encode-modified '(a a a a b c c a a d e e e e))
+              '((4 a) b (2 c) (2 a) d (4 e)))
+
 ;;    [12]P12 (**) Decode a run-length encoded list.
 ;;           Given a run-length code list generated as specified in problem
 ;;           P11. Construct its uncompressed version.
