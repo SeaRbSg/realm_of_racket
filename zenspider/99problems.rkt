@@ -338,10 +338,8 @@
 (define (drop l n)
   (define (inner-drop l c)
     (cond [(empty? l) empty]
-          [(zero? (modulo c n))
-           (inner-drop (rest l) (add1 c))]
-          [else
-           (cons (first l) (inner-drop (rest l) (add1 c)))]))
+          [(zero? (modulo c n)) (inner-drop (rest l) (add1 c))]
+          [else (cons (first l) (inner-drop (rest l) (add1 c)))]))
 
   (inner-drop l 1))
 
