@@ -15,7 +15,7 @@
 (define REGULAR-GOO 1)
 (define SUPER-GOO 2)
 (define GOO-SIZE 10)
-(define SUPER-PROB 0.25)
+(define SUPER-PROB 0.5)
 
 (define WIDTH-PX  (* SEG-SIZE SIZE))
 (define HEIGHT-PX (* SEG-SIZE SIZE))
@@ -52,7 +52,7 @@
   (define goos-eaten (pit-goos-eaten w))
   (define goo-to-eat (can-eat snake goos))
   (if goo-to-eat
-      (pit (grow snake) (age-goo (eat goos goo-to-eat)) (add1 goos-eaten))
+      (pit (grow snake goo-to-eat) (age-goo (eat goos goo-to-eat)) (add1 goos-eaten))
       (pit (slither snake) (age-goo goos) goos-eaten)))
 
 (define (can-eat snake goos)
@@ -67,9 +67,14 @@
 (define (eat goos goo-to-eat)
   (cons (fresh-goo) (remove goo-to-eat goos)))
 
-(define (grow sn)
-  (snake (snake-dir sn)
-         (cons (next-head sn) (snake-segs sn))))
+(define (grow sn goo)
+  (define new-snake (snake 
+                     (snake-dir sn) 
+                     (cons (next-head sn) (snake-segs sn))))
+  (if (super? goo)
+      (snake (snake-dir new-snake) 
+             (cons (next-head new-snake) (snake-segs new-snake)))
+      new-snake))
 
 (define (slither sn)
   (snake (snake-dir sn)
