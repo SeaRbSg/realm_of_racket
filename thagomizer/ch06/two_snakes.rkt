@@ -8,7 +8,7 @@
 (struct goo (loc expire type) #:transparent)
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
-(struct pit (snake goos goos-eaten) #:transparent)
+(struct pit (snake1 snake2 goos goos-eaten) #:transparent)
 
 ;;
 ;; CONSTANTS
@@ -30,6 +30,11 @@
 (define HEAD-DOWN-IMG (rotate 90 HEAD-LEFT-IMG))
 (define HEAD-RIGHT-IMG (flip-horizontal HEAD-LEFT-IMG))
 (define HEAD-UP-IMG (flip-vertical HEAD-DOWN-IMG))
+(define HEAD2-IMG (bitmap "purple_head.gif"))
+(define HEAD2-LEFT-IMG HEAD2-IMG)
+(define HEAD2-DOWN-IMG (rotate 90 HEAD2-LEFT-IMG))
+(define HEAD2-RIGHT-IMG (flip-horizontal HEAD2-LEFT-IMG))
+(define HEAD2-UP-IMG (flip-vertical HEAD2-DOWN-IMG))
 
 ;; Goo
 (define EXPIRATION-TIME 150)
@@ -48,6 +53,7 @@
 ;; Main Runner
 (define (start-snake)
   (big-bang (pit (snake "right" (list (posn 1 1)))
+                 (snake "left" (list (posn 10 10)))
                  (fresh-goos (add1 (random (sub1 MAX-GOOS))))
                  0)
             (on-tick next-pit TICK-RATE)
@@ -98,21 +104,53 @@
 (define (close? s g)
   (posn=? s (goo-loc g)))
 
-(define (world-change-dir w d)
-  (define the-snake (pit-snake w))
+(define (world-change-dir w snake-num d)
   (define goos-eaten (pit-goos-eaten w))
-  (cond [(and (opposite-dir? (snake-dir the-snake) d)
-              ;; consists of the head and at least one segment
-              (cons? (rest (snake-segs the-snake))))
-         (stop-with w)]
-        [else 
-         (pit (snake-change-dir the-snake d)
-              (pit-goos w)
-              goos-eaten)]))
+  (cond [(equal? snake-num 1)
+         (define snake (pit-snake1 w))
+         (cond [(and (opposite-dir? (snake-dir snake) d)
+                     ;; consists of the head and at least one segment
+                     (cons? (rest (snake-segs snake))))
+                (stop-with w)]
+               [else 
+                (pit (snake-change-dir snake d)
+                     (pit-snake2 w)
+                     (pit-goos w)
+                     goos-eaten)])]
+        [else
+         (define snake (pit-snake2 w))
+         (cond [(and (opposite-dir? (snake-dir snake) d)
+                     ;; consists of the head and at least one segment
+                     (cons? (rest (snake-segs snake))))
+                (stop-with w)]
+               [else 
+                (pit (pit-snake1 w)
+                     (snake-change-dir snake d)
+                     (pit-goos w)
+                     goos-eaten)])]))        
 
 (define (direct-snake w key)
-  (cond [(dir? key) (world-change-dir w key)]
+  (define snake-num (determine-snake-num key))
+  (cond [(dir? key) (world-change-dir w snake-num (direction-from-key key))]
         [else w]))
+
+(define (direction-from-key key)
+  (cond [(key=? key "up") "up"]
+        [(key=? key "down") "down"]
+        [(key=? key "left") "left"]
+        [(key=? key "right") "right"]
+        [(key=? key "a") "left"]
+        [(key=? key "e") "right"]
+        [(key=? key "o") "down"]
+        [(key=? key ",") "up"]))
+
+(define (determine-snake-num key)
+  (if (or (key=? key "up")
+          (key=? key "down")
+          (key=? key "left")
+          (key=? key "right"))
+      1
+      2))
 
 (define (render-end w)
   (overlay (text 
@@ -124,23 +162,36 @@
 
 ;; Pit
 (define (next-pit w)
-  (define snake (pit-snake w))
+  (define snake1 (pit-snake1 w))
+  (define snake2 (pit-snake2 w))
   (define goos (pit-goos w))
   (define goos-eaten (pit-goos-eaten w))
-  (define goo-to-eat (can-eat snake goos))
-    (if goo-to-eat
-      (pit 
-       (grow snake (goo-type goo-to-eat)) 
-       (age-goo (eat goos goo-to-eat)) 
-       (add1 goos-eaten))
-      (pit 
-       (slither snake) 
-       (age-goo goos) 
-       goos-eaten)))
+  (define goo-to-eat1 (can-eat snake1 goos))
+  (define goo-to-eat2 (can-eat snake2 goos))
+  (define new-snake1 
+    (if goo-to-eat1
+        (begin
+          (grow snake1 (goo-type goo-to-eat1))
+          (set! goos (eat goos goo-to-eat1)))
+        (slither snake1)))
+    (define new-snake2
+    (if goo-to-eat2
+        (begin
+          (grow snake2 (goo-type goo-to-eat2))
+          (set! goos (eat goos goo-to-eat2)))
+        (slither snake2)))
+  (pit 
+   new-snake1
+   new-snake2
+   (age-goo goos)
+   goos-eaten))
 
 (define (render-pit w)
-  (snake+scene (pit-snake w)
-               (goo-list+scene (pit-goos w) MT-SCENE)))
+  (snake+scene (pit-snake1 w)
+               HEAD-IMG
+               (snake+scene (pit-snake2 w)
+                            HEAD2-IMG
+                            (goo-list+scene (pit-goos w) MT-SCENE))))
 
 ;; Goo
 (define (super? g)
@@ -236,7 +287,7 @@
          (cons (next-head sn) (all-but-last (snake-segs sn)))))
 
 (define (dead? w)
-  (define snake (pit-snake w))
+  (define snake (pit-snake1 w))
   (define head (snake-head snake))
   (or (self-colliding? snake) (wall-colliding? snake)))
 
@@ -250,18 +301,24 @@
   (or (= 0 x) (= x SIZE)
       (= 0 y) (= y SIZE)))
 
-(define (snake+scene snake scene)
+(define (snake+scene snake head-img scene)
   (define snake-body-scene
     (img-list+scene (snake-body snake)
                     SEG-IMG scene))
   (define dir (snake-dir snake))
-  (img+scene (snake-head snake)
-             (cond [(string=? "up" dir) HEAD-UP-IMG]
-                   [(string=? "down" dir) HEAD-DOWN-IMG]
-                   [(string=? "left" dir) HEAD-LEFT-IMG]
-                   [(string=? "right" dir) HEAD-RIGHT-IMG])
-             snake-body-scene))
-
+  (if (equal? head-img HEAD-IMG)
+      (img+scene (snake-head snake)
+                 (cond [(string=? "up" dir) HEAD-UP-IMG]
+                       [(string=? "down" dir) HEAD-DOWN-IMG]
+                       [(string=? "left" dir) HEAD-LEFT-IMG]
+                       [(string=? "right" dir) HEAD-RIGHT-IMG])
+                 snake-body-scene)
+      (img+scene (snake-head snake)
+                 (cond [(string=? "up" dir) HEAD2-UP-IMG]
+                       [(string=? "down" dir) HEAD2-DOWN-IMG]
+                       [(string=? "left" dir) HEAD2-LEFT-IMG]
+                       [(string=? "right" dir) HEAD2-RIGHT-IMG])
+                 snake-body-scene)))
 
 
 
