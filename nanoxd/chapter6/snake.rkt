@@ -27,12 +27,8 @@
 ;; Start the game!
 (define (start-snake)
   (big-bang (pit (snake "right" (list (position 1 1)))
-                 (list (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)
-                       (fresh-goo)))
+                 (build-list (add1 (random 8)) (lambda (x) (fresh-goo))))
+            
             (on-tick next-pit TICK-RATE)
             (on-key direct-snake)
             (to-draw render-pit)
