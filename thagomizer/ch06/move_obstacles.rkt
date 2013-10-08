@@ -6,10 +6,10 @@
 ;;
 
 (struct goo (loc expire type) #:transparent)
-(struct obstacle (loc))
+(struct wall (loc))
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
-(struct pit (snake goos obstacles goos-eaten) #:transparent)
+(struct pit (snake goos walls goos-eaten) #:transparent)
 
 ;;
 ;; CONSTANTS
@@ -42,10 +42,10 @@
 (define GOO-IMG (bitmap "goo.gif"))
 (define SUPER-GOO-IMG (circle GOO-SIZE "solid" "magenta"))
 
-;; Obstacles
-(define OBSTACLE-SIZE 20)
-(define OBSTACLE-IMG (square OBSTACLE-SIZE "solid" "black"))
-(define OBSTACLE-LIFE 50)
+;; Wall
+(define WALL-SIZE 20)
+(define WALL-IMG (square WALL-SIZE "solid" "black"))
+(define WALL-LIFE 50)
 
 ;; 
 ;; Functions
@@ -55,7 +55,7 @@
 (define (start-snake)
   (big-bang (pit (snake "right" (list (posn 1 1)))
                  (fresh-goos (add1 (random (sub1 MAX-GOOS))))
-                 (fresh-obstacles 10)
+                 (fresh-walls 10)
                  0)
             (on-tick next-pit TICK-RATE)
             (on-key direct-snake)
@@ -115,7 +115,7 @@
         [else 
          (pit (snake-change-dir the-snake d)
               (pit-goos w)
-              (pit-obstacles w)
+              (pit-walls w)
               goos-eaten)]))
 
 (define (direct-snake w key)
@@ -134,24 +134,24 @@
 (define (next-pit w)
   (define snake (pit-snake w))
   (define goos (pit-goos w))
-  (define obstacles (pit-obstacles w))
+  (define walls (pit-walls w))
   (define goos-eaten (pit-goos-eaten w))
   (define goo-to-eat (can-eat snake goos))
     (if goo-to-eat
       (pit 
        (grow snake (goo-type goo-to-eat)) 
        (age-goo (eat goos goo-to-eat)) 
-       obstacles
+       walls
        (add1 goos-eaten))
       (pit 
        (slither snake) 
        (age-goo goos) 
-       obstacles
+       walls
        goos-eaten)))
 
 (define (render-pit w)
   (snake+scene (pit-snake w)
-               (obstacles+scene (pit-obstacles w)
+               (walls+scene (pit-walls w)
                                 (goo-list+scene (pit-goos w) MT-SCENE))))
 
 ;; Goo
@@ -250,8 +250,8 @@
 (define (dead? w)
   (define snake (pit-snake w))
   (define head (snake-head snake))
-  (define obstacles (pit-obstacles w))
-  (or (self-colliding? snake) (edge-colliding? snake) (obstacle-colliding? obstacles head)))
+  (define walls (pit-walls w))
+  (or (self-colliding? snake) (edge-colliding? snake) (wall-colliding? walls head)))
 
 (define (self-colliding? snake)
   (cons? (member (snake-head snake)
@@ -263,10 +263,10 @@
   (or (= 0 x) (= x SIZE)
       (= 0 y) (= y SIZE)))
 
-(define (obstacle-colliding? obstacles head-posn)
-  (cond [(empty? obstacles) #f]
-        [(posn=? head-posn (obstacle-loc (first obstacles))) #t]
-        [else (obstacle-colliding? (rest obstacles) head-posn)]))
+(define (wall-colliding? walls head-posn)
+  (cond [(empty? walls) #f]
+        [(posn=? head-posn (wall-loc (first walls))) #t]
+        [else (wall-colliding? (rest walls) head-posn)]))
 
 (define (snake+scene snake scene)
   (define snake-body-scene
@@ -282,22 +282,22 @@
 
 
 
-;; Obstacles
-(define (fresh-obstacles n)
+;; Walls
+(define (fresh-walls n)
   (cond [(zero? n) empty]
         [else 
-         (cons (fresh-obstacle) (fresh-obstacles (sub1 n)))]))
+         (cons (fresh-wall) (fresh-walls (sub1 n)))]))
 
-(define (fresh-obstacle)
-  (obstacle (posn (add1 (random (sub1 SIZE)))
+(define (fresh-wall)
+  (wall (posn (add1 (random (sub1 SIZE)))
                   (add1 (random (sub1 SIZE))))))
             
-(define (obstacles+scene obstacles scene)
-  (cond [(empty? obstacles) scene]
+(define (walls+scene walls scene)
+  (cond [(empty? walls) scene]
         [else
-         (define obstacle (first obstacles))
-         (define posn (obstacle-loc obstacle))
-         (img+scene posn OBSTACLE-IMG (obstacles+scene (rest obstacles) scene))]))
+         (define wall (first walls))
+         (define posn (wall-loc wall))
+         (img+scene posn WALL-IMG (walls+scene (rest walls) scene))]))
 
 
 
