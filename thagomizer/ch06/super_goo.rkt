@@ -1,7 +1,7 @@
 #lang racket
 (require 2htdp/image 2htdp/universe)
 
-(struct goo (loc expire) #:transparent)
+(struct goo (loc expire type) #:transparent)
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
 (struct pit (snake goos goos-eaten) #:transparent)
@@ -15,6 +15,7 @@
 (define REGULAR-GOO 1)
 (define SUPER-GOO 2)
 (define GOO-SIZE 10)
+(define SUPER-PROB 0.25)
 
 (define WIDTH-PX  (* SEG-SIZE SIZE))
 (define HEIGHT-PX (* SEG-SIZE SIZE))
@@ -98,7 +99,7 @@
         [else (cons (decay (first goos)) (rot (rest goos)))]))
 
 (define (decay g)
-  (goo (goo-loc g) (sub1 (goo-expire g))))
+  (goo (goo-loc g) (sub1 (goo-expire g)) (goo-type g)))
 
 (define (renew goos)
   (cond [(empty? goos) empty]
@@ -112,7 +113,13 @@
 (define (fresh-goo)
   (goo (posn (add1 (random (sub1 SIZE)))
              (add1 (random (sub1 SIZE))))
-       EXPIRATION-TIME))
+       EXPIRATION-TIME
+       (new-goo-type)))
+
+(define (new-goo-type)
+  (if (< (random) SUPER-PROB)
+      SUPER-GOO
+      REGULAR-GOO))
 
 (define (direct-snake w key)
   (cond [(dir? key) (world-change-dir w key)]
@@ -170,12 +177,22 @@
                (* (posn-y posn) SEG-SIZE)
                scene))
 
+(define (img-for-goo goo)
+  (cond [(super? goo) SUPER-GOO-IMG]
+        [else GOO-IMG]))
+
 (define (goo-list+scene goos scene)
-  (define (get-posns-from-goo goos)
-    (cond [(empty? goos) empty]
-          [else (cons (goo-loc (first goos))
-                      (get-posns-from-goo (rest goos)))]))
-  (img-list+scene (get-posns-from-goo goos) SUPER-GOO-IMG scene))
+  (cond [(empty? goos) scene]
+        [else 
+         (define goo (first goos))
+         (define posn (goo-loc goo))
+         (define img (img-for-goo goo))
+         (img+scene posn 
+                    img 
+                    (goo-list+scene (rest goos) scene))]))
+
+(define (super? g)
+  (equal? (goo-type g) SUPER-GOO))
 
 (define (dead? w)
   (define snake (pit-snake w))
