@@ -229,7 +229,9 @@
 
 (define (dead? w)
   (define snake (pit-snake w))
-  (or (self-colliding? snake) (wall-colliding? snake)))
+  (define head (snake-head snake))
+  (define obstacles (pit-obstacles w))
+  (or (self-colliding? snake) (wall-colliding? snake) (obstacle-colliding? obstacles head)))
 
 (define (render-end w)
   (overlay (text 
@@ -248,6 +250,11 @@
   (define y (posn-y (snake-head snake)))
   (or (= 0 x) (= x SIZE)
       (= 0 y) (= y SIZE)))
+
+(define (obstacle-colliding? obstacles head-posn)
+  (cond [(empty? obstacles) #f]
+        [(posn=? head-posn (obstacle-loc (first obstacles))) #t]
+        [else (obstacle-colliding? (rest obstacles) head-posn)]))
 
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
