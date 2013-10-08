@@ -1,6 +1,23 @@
 #lang racket
 (require 2htdp/universe 2htdp/image)
 
+;;CONSTANTS
+(define SIZE 500)
+(define SEG-SIZE 150)
+(define WIDTH-PX  (* SEG-SIZE 10))
+(define HEIGHT-PX (* SEG-SIZE 10))
+(define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
+(define EXPIRATION-TIME 150)
+(define GOO-IMG (bitmap "goo.gif"))
+(define SEG-IMG  (bitmap "body.gif"))
+(define HEAD-IMG (bitmap "head.gif"))
+(define HEAD-UP-IMG HEAD-IMG)
+(define HEAD-DOWN-IMG (flip vertical HEAD-UP-IMG))
+(define HEAD-RIGHT-IMG (rotate 90 HEAD-UP-IMG))
+(define HEAD-LEFT-IMG (flip-horizontal HEAD-DOWN-IMG))
+(define ENDGAME-TEXT-SIZE 50)
+(define TICK-RATE 1/3)
+
 ;;MAIN STRUCTS
 
 ;;Position coordinates
@@ -24,6 +41,9 @@
 ;;Determines if all ticks are gone on goo
 (define (rotten? g)
   (zero? (goo-expire g)))
+
+(define (decay g)
+  (goo (goo-loc g) (sub1 (goo-expire g))))
 
 ;;List eater function that decays eat goo
 (define (rot goos)
@@ -178,7 +198,7 @@
 
 (define (render-end w)
   (overlay (text "Game Over" ENDGAME-TEXT-SIZE "black")
-           (render-snake-world w)))
+           (render-pit w)))
 
 ;;AUXILIARY FUNCTIONS
 (define (posn=? p1 p2)
