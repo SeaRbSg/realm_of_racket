@@ -286,9 +286,12 @@
          (cons (next-head sn) (all-but-last (snake-segs sn)))))
 
 (define (dead? w)
-  (define snake (pit-snake1 w))
-  (define head (snake-head snake))
-  (or (self-colliding? snake) (wall-colliding? snake)))
+  (define snake1 (pit-snake1 w))
+  (define snake2 (pit-snake2 w))
+  (or (self-colliding? snake1) 
+      (wall-colliding? snake1)
+      (self-colliding? snake2)
+      (wall-colliding? snake2)))
 
 (define (self-colliding? snake)
   (cons? (member (snake-head snake)
