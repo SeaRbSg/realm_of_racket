@@ -22,7 +22,7 @@
 
 (define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
 (define GOO-IMG (bitmap "goo.gif"))
-(define SUPER-GOO-IMG (circle GOO-SIZE "solid" "magenta"))
+(define SUPER-GOO-IMG (bitmap "blue_goo.gif"))
 (define SEG-IMG  (bitmap "body.gif"))
 (define HEAD-IMG (bitmap "head.gif"))
 
