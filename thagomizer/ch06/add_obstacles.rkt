@@ -79,6 +79,10 @@
         [(string=? d1 "left") (string=? d2 "right")]
         [(string=? d1 "right") (string=? d2 "left")]))
 
+(define (posn-move p dx dy)
+  (posn (+ (posn-x p) dx)
+        (+ (posn-y p) dy)))
+
 (define (img-list+scene posns img scene)
   (cond [(empty? posns) scene]
         [else (img+scene (first posns)
@@ -151,6 +155,9 @@
                                 (goo-list+scene (pit-goos w) MT-SCENE))))
 
 ;; Goo
+(define (super? g)
+  (equal? (goo-type g) SUPER-GOO))
+
 (define (fresh-goos n)
   (cond [(zero? n) empty]
         [(cons (fresh-goo) (fresh-goos (sub1 n)))]))
@@ -168,10 +175,6 @@
 
 (define (eat goos goo-to-eat)
   (cons (fresh-goo) (remove goo-to-eat goos)))
-
-(define (posn-move p dx dy)
-  (posn (+ (posn-x p) dx)
-        (+ (posn-y p) dy)))
 
 (define (age-goo goos)
   (rot (renew goos)))
@@ -205,9 +208,6 @@
          (img+scene posn 
                     img 
                     (goo-list+scene (rest goos) scene))]))
-
-(define (super? g)
-  (equal? (goo-type g) SUPER-GOO))
 
 
 ;; Snake
