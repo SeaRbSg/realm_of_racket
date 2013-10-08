@@ -6,7 +6,7 @@
 ;;
 
 (struct goo (loc expire type) #:transparent)
-(struct obstacle (loc expire))
+(struct obstacle (loc))
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
 (struct pit (snake goos obstacles goos-eaten) #:transparent)
@@ -141,12 +141,12 @@
       (pit 
        (grow snake (goo-type goo-to-eat)) 
        (age-goo (eat goos goo-to-eat)) 
-       obstacles 
+       obstacles
        (add1 goos-eaten))
       (pit 
        (slither snake) 
        (age-goo goos) 
-       obstacles 
+       obstacles
        goos-eaten)))
 
 (define (render-pit w)
@@ -251,13 +251,13 @@
   (define snake (pit-snake w))
   (define head (snake-head snake))
   (define obstacles (pit-obstacles w))
-  (or (self-colliding? snake) (wall-colliding? snake) (obstacle-colliding? obstacles head)))
+  (or (self-colliding? snake) (edge-colliding? snake) (obstacle-colliding? obstacles head)))
 
 (define (self-colliding? snake)
   (cons? (member (snake-head snake)
                  (snake-body snake))))
 
-(define (wall-colliding? snake)
+(define (edge-colliding? snake)
   (define x (posn-x (snake-head snake)))
   (define y (posn-y (snake-head snake)))
   (or (= 0 x) (= x SIZE)
@@ -285,13 +285,13 @@
 ;; Obstacles
 (define (fresh-obstacles n)
   (cond [(zero? n) empty]
-        [(cons (fresh-obstacle) (fresh-obstacles (sub1 n)))]))
+        [else 
+         (cons (fresh-obstacle) (fresh-obstacles (sub1 n)))]))
 
 (define (fresh-obstacle)
   (obstacle (posn (add1 (random (sub1 SIZE)))
-                  (add1 (random (sub1 SIZE))))
-            OBSTACLE-LIFE))
-
+                  (add1 (random (sub1 SIZE))))))
+            
 (define (obstacles+scene obstacles scene)
   (cond [(empty? obstacles) scene]
         [else
