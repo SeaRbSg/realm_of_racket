@@ -40,7 +40,7 @@
 (define GOO-SIZE 10)
 (define SUPER-PROB 0.5)
 (define GOO-IMG (bitmap "goo.gif"))
-(define SUPER-GOO-IMG (circle GOO-SIZE "solid" "magenta"))
+(define SUPER-GOO-IMG (bitmap "blue_goo.gif"))
 
 ;; Wall
 (define WALL-SIZE 20)
