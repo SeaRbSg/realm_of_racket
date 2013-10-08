@@ -9,7 +9,7 @@
 (struct wall (loc))
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
-(struct pit (snake goos walls goos-eaten) #:transparent)
+(struct pit (snake goos walls goos-eaten wall-expire) #:transparent)
 
 ;;
 ;; CONSTANTS
@@ -46,6 +46,7 @@
 (define WALL-SIZE 20)
 (define WALL-IMG (square WALL-SIZE "solid" "black"))
 (define WALL-LIFE 50)
+(define WALL-COUNT 10)
 
 ;; 
 ;; Functions
@@ -55,8 +56,9 @@
 (define (start-snake)
   (big-bang (pit (snake "right" (list (posn 1 1)))
                  (fresh-goos (add1 (random (sub1 MAX-GOOS))))
-                 (fresh-walls 10)
-                 0)
+                 (fresh-walls WALL-COUNT)
+                 0
+                 WALL-LIFE)
             (on-tick next-pit TICK-RATE)
             (on-key direct-snake)
             (to-draw render-pit)
@@ -116,7 +118,8 @@
          (pit (snake-change-dir the-snake d)
               (pit-goos w)
               (pit-walls w)
-              goos-eaten)]))
+              goos-eaten
+              (pit-wall-expire w))]))
 
 (define (direct-snake w key)
   (cond [(dir? key) (world-change-dir w key)]
@@ -134,7 +137,14 @@
 (define (next-pit w)
   (define snake (pit-snake w))
   (define goos (pit-goos w))
-  (define walls (pit-walls w))
+  (define walls
+    (if (zero? (pit-wall-expire w))
+        (fresh-walls WALL-COUNT)
+        (pit-walls w)))
+  (define wall-expire
+    (if (zero? (pit-wall-expire w))
+        WALL-LIFE
+        (sub1 (pit-wall-expire w))))
   (define goos-eaten (pit-goos-eaten w))
   (define goo-to-eat (can-eat snake goos))
     (if goo-to-eat
@@ -142,12 +152,14 @@
        (grow snake (goo-type goo-to-eat)) 
        (age-goo (eat goos goo-to-eat)) 
        walls
-       (add1 goos-eaten))
+       (add1 goos-eaten)
+       wall-expire)
       (pit 
        (slither snake) 
        (age-goo goos) 
        walls
-       goos-eaten)))
+       goos-eaten
+       wall-expire)))
 
 (define (render-pit w)
   (snake+scene (pit-snake w)
