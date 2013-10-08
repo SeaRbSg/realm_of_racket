@@ -8,7 +8,7 @@
 (struct goo (loc expire type) #:transparent)
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
-(struct pit (snake1 snake2 goos goos-eaten) #:transparent)
+(struct pit (snake1 snake2 goos goos-eaten1 goos-eaten2) #:transparent)
 
 ;;
 ;; CONSTANTS
@@ -55,6 +55,7 @@
   (big-bang (pit (snake "right" (list (posn 1 1)))
                  (snake "left" (list (posn 10 10)))
                  (fresh-goos (add1 (random (sub1 MAX-GOOS))))
+                 0
                  0)
             (on-tick next-pit TICK-RATE)
             (on-key direct-snake)
@@ -109,7 +110,8 @@
   (posn=? s (goo-loc g)))
 
 (define (world-change-dir w snake-num d)
-  (define goos-eaten (pit-goos-eaten w))
+  (define goos-eaten1 (pit-goos-eaten1 w))
+  (define goos-eaten2 (pit-goos-eaten2 w))
   (cond [(equal? snake-num 1)
          (define snake (pit-snake1 w))
          (cond [(and (opposite-dir? (snake-dir snake) d)
@@ -120,7 +122,8 @@
                 (pit (snake-change-dir snake d)
                      (pit-snake2 w)
                      (pit-goos w)
-                     goos-eaten)])]
+                     goos-eaten1
+                     goos-eaten2)])]
         [else
          (define snake (pit-snake2 w))
          (cond [(and (opposite-dir? (snake-dir snake) d)
@@ -131,7 +134,8 @@
                 (pit (pit-snake1 w)
                      (snake-change-dir snake d)
                      (pit-goos w)
-                     goos-eaten)])]))        
+                     goos-eaten1
+                     goos-eaten2)])]))        
 
 (define (direct-snake w key)
   (define snake-num (determine-snake-num key))
@@ -158,9 +162,11 @@
 
 (define (render-end w)
   (overlay (text 
-            (string-append "Game Over. " 
-                           (number->string (pit-goos-eaten w))
-                           " goos eaten!")
+            (string-append "Game Over. Snake 1 ate " 
+                           (number->string (pit-goos-eaten1 w))
+                           " goos! Snake 2 ate "
+                           (number->string (pit-goos-eaten2 w))
+                           " goos!")
             ENDGAME-TEXT-SIZE "black")
            (render-pit w)))
 
@@ -169,26 +175,30 @@
   (define snake1 (pit-snake1 w))
   (define snake2 (pit-snake2 w))
   (define goos (pit-goos w))
-  (define goos-eaten (pit-goos-eaten w))
+  (define goos-eaten1 (pit-goos-eaten1 w))
+  (define goos-eaten2 (pit-goos-eaten2 w))
   (define goo-to-eat1 (can-eat snake1 goos))
   (define goo-to-eat2 (can-eat snake2 goos))
   (define new-snake1 
     (if goo-to-eat1
         (begin
           (set! goos (eat goos goo-to-eat1))
+          (set goos-eaten1 (add1 goos-eaten1))
           (grow snake1 (goo-type goo-to-eat1)))
         (slither snake1)))
     (define new-snake2
     (if goo-to-eat2
         (begin
           (set! goos (eat goos goo-to-eat2))
+          (set goos-eaten2 (add1 goos-eaten2))
           (grow snake2 (goo-type goo-to-eat2)))
         (slither snake2)))
   (pit 
    new-snake1
    new-snake2
    (age-goo goos)
-   goos-eaten))
+   goos-eaten1
+   goos-eaten2))
 
 (define (render-pit w)
   (snake+scene (pit-snake1 w)
