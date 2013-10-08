@@ -6,7 +6,7 @@
 ;;
 
 (struct goo (loc expire type) #:transparent)
-(struct obstacle (loc))
+(struct obstacle (loc expire))
 (struct posn (x y) #:transparent)
 (struct snake (dir segs) #:transparent)
 (struct pit (snake goos obstacles goos-eaten) #:transparent)
@@ -33,7 +33,7 @@
 (define HEAD-UP-IMG (flip-vertical HEAD-DOWN-IMG))
 
 ;; Goo
-(define GOO-LIEE 150)
+(define GOO-LIFE 150)
 (define MAX-GOOS 10)
 (define REGULAR-GOO 1)
 (define SUPER-GOO 2)
@@ -289,7 +289,8 @@
 
 (define (fresh-obstacle)
   (obstacle (posn (add1 (random (sub1 SIZE)))
-                  (add1 (random (sub1 SIZE))))))
+                  (add1 (random (sub1 SIZE))))
+            OBSTACLE-LIFE))
 
 (define (obstacles+scene obstacles scene)
   (cond [(empty? obstacles) scene]
