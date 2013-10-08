@@ -51,8 +51,8 @@
   (define goos (pit-goos w))
   (define goos-eaten (pit-goos-eaten w))
   (define goo-to-eat (can-eat snake goos))
-  (if goo-to-eat
-      (pit (grow snake goo-to-eat) (age-goo (eat goos goo-to-eat)) (add1 goos-eaten))
+    (if goo-to-eat
+      (pit (grow snake (goo-type goo-to-eat)) (age-goo (eat goos goo-to-eat)) (add1 goos-eaten))
       (pit (slither snake) (age-goo goos) goos-eaten)))
 
 (define (can-eat snake goos)
@@ -67,14 +67,12 @@
 (define (eat goos goo-to-eat)
   (cons (fresh-goo) (remove goo-to-eat goos)))
 
-(define (grow sn goo)
+(define (grow sn grow-by)
   (define new-snake (snake 
                      (snake-dir sn) 
                      (cons (next-head sn) (snake-segs sn))))
-  (if (super? goo)
-      (snake (snake-dir new-snake) 
-             (cons (next-head new-snake) (snake-segs new-snake)))
-      new-snake))
+  (cond [(equal? grow-by 1) new-snake]
+        [else (grow new-snake (sub1 grow-by))]))
 
 (define (slither sn)
   (snake (snake-dir sn)
