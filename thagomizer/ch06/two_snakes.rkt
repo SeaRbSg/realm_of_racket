@@ -171,14 +171,14 @@
   (define new-snake1 
     (if goo-to-eat1
         (begin
-          (grow snake1 (goo-type goo-to-eat1))
-          (set! goos (eat goos goo-to-eat1)))
+          (set! goos (eat goos goo-to-eat1))
+          (grow snake1 (goo-type goo-to-eat1)))
         (slither snake1)))
     (define new-snake2
     (if goo-to-eat2
         (begin
-          (grow snake2 (goo-type goo-to-eat2))
-          (set! goos (eat goos goo-to-eat2)))
+          (set! goos (eat goos goo-to-eat2))
+          (grow snake2 (goo-type goo-to-eat2)))
         (slither snake2)))
   (pit 
    new-snake1
@@ -265,7 +265,6 @@
 (define (all-but-last segs)
   (cond [(empty? (rest segs)) empty]
         [else (cons (first segs) (all-but-last (rest segs)))]))
-
 
 (define (grow sn grow-by)
   (define new-snake (snake 
