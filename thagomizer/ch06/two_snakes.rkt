@@ -70,7 +70,11 @@
   (or (key=? x "up")
       (key=? x "down")
       (key=? x "left")
-      (key=? x "right")))
+      (key=? x "right")
+      (key=? x "a")
+      (key=? x "o")
+      (key=? x "e")
+      (key=? x ",")))
 
 (define (opposite-dir? d1 d2)
   (cond [(string=? d1 "up") (string=? d2 "down")]
