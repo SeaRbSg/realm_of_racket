@@ -2,21 +2,21 @@
 (require 2htdp/universe 2htdp/image)
 
 ;;CONSTANTS
-(define SIZE 500)
-(define SEG-SIZE 150)
-(define WIDTH-PX  (* SEG-SIZE 10))
-(define HEIGHT-PX (* SEG-SIZE 10))
+(define SIZE 30)
+(define SEG-SIZE 20)
+(define WIDTH-PX  (* SEG-SIZE 30))
+(define HEIGHT-PX (* SEG-SIZE 30))
 (define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
 (define EXPIRATION-TIME 150)
 (define GOO-IMG (bitmap "goo.gif"))
 (define SEG-IMG  (bitmap "body.gif"))
 (define HEAD-IMG (bitmap "head.gif"))
-(define HEAD-UP-IMG HEAD-IMG)
-(define HEAD-DOWN-IMG (flip vertical HEAD-UP-IMG))
-(define HEAD-RIGHT-IMG (rotate 90 HEAD-UP-IMG))
-(define HEAD-LEFT-IMG (flip-horizontal HEAD-DOWN-IMG))
+(define HEAD-LEFT-IMG HEAD-IMG)
+(define HEAD-RIGHT-IMG (flip-horizontal HEAD-LEFT-IMG))
+(define HEAD-DOWN-IMG (rotate 90 HEAD-LEFT-IMG))
+(define HEAD-UP-IMG (flip-vertical HEAD-DOWN-IMG))
 (define ENDGAME-TEXT-SIZE 50)
-(define TICK-RATE 1/3)
+(define TICK-RATE 1/8)
 
 ;;MAIN STRUCTS
 
