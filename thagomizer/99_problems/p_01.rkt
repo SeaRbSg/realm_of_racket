@@ -5,15 +5,16 @@
 ;; (D)
 
 (define (my-last l)
-  (cond [(empty? (cdr l)) l]
-        [else
-         (my-last (cdr l))]))
+  (cond [(empty? l) l]
+        [(empty? (cdr l)) l]
+        [else (my-last (cdr l))]))
 
 (module+ test 
 
   (require rackunit rackunit/text-ui)
   
-  (check-equal? '(d) (my-last '(a b c d)))
-  (check-equal? '(a) (my-last '(a)))
+  (check-equal? (my-last '(a b c d)) '(d))
+  (check-equal? (my-last '(a)) '(a))
+  (check-equal? (my-last '()) '())
   
   "all tests pass")
