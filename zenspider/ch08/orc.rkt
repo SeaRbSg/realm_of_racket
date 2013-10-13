@@ -158,12 +158,8 @@
   (define target (if (number? with-target) (list-ref lom with-target) 'nope))
   (define (render-one-monster m)
     (define image
-      (if (eq? m target)
-          (overlay TARGET (monster-image m))
-          (monster-image m)))
-    ;; (define image TODO
-    ;;   (overlay (if (eq? m target) TARGET empty-image)
-    ;;            (monster-image m)))
+      (overlay (if (eq? m target) TARGET empty-image)
+               (monster-image m)))
     (define health (monster-health m))
     (define health-bar
       (if (zero? health)
