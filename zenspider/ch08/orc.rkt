@@ -1,7 +1,8 @@
 #lang racket
 
 (require 2htdp/universe 2htdp/image)
-(require racket/runtime-path)
+
+;;; Constants
 
 (define MAX-HEALTH   35)
 (define MAX-AGILITY  35)
@@ -21,8 +22,6 @@
 
 (define MONSTER# 12)
 (define PER-ROW  4)
-
-;; (define-runtime-path ufo-path "ufo.png") ;; TODO?
 
 (define ORC          (bitmap "orc.png"))
 (define HYDRA        (bitmap "hydra.png"))
@@ -78,20 +77,17 @@
 
 (define DEAD-TEXT (text DEAD DEAD-TEXT-SIZE "crimson"))
 
+;;; Structs
+
+;;;; World
+
 (struct orc-world (player lom attack# target) #:transparent #:mutable)
+
+;;;; Player
 
 (struct player (health agility strength) #:transparent #:mutable)
 
-(define (player-update! setter selector mx)
-  (lambda (player delta)
-    (setter player (interval+ (selector player) delta mx))))
-
-(define player-health+
-  (player-update! set-player-health!   player-health   MAX-HEALTH))
-(define player-agility+
-  (player-update! set-player-agility!  player-agility  MAX-AGILITY))
-(define player-strength+
-  (player-update! set-player-strength! player-strength MAX-STRENGTH))
+;;;; Monsters
 
 (struct monster (image [health #:mutable]) #:transparent)
 (struct orc     monster (club)             #:transparent)
@@ -125,12 +121,9 @@
                   [(2) (slime   SLIME-IMAGE   health (random+ SLIMINESS))]
                   [(3) (brigand BRIGAND-IMAGE health)]))))
 
-(define (random-number-of-attacks p)
-  (random-quotient (player-agility p) ATTACKS#))
-
 (define (player-acts-on-monsters w k)
   (unless (zero? (orc-world-attack# w))
-    
+
     (case (string->symbol k)
       [(a)     (stab     w)]
       [(h)     (heal     w)]
@@ -228,22 +221,16 @@
 (define (render-the-end w)
   (render-orc-world w false (message (if (lose? w) LOSE WIN))))
 
+;;; Game Logic / Actions
+
 (define (win? w)
   (all-dead? (orc-world-lom w)))
 
 (define (lose? w)
   (player-dead? (orc-world-player w)))
 
-(define (player-dead? p)
-  (or (zero? (player-health   p))
-      (zero? (player-agility  p))
-      (zero? (player-strength p))))
-
 (define (all-dead? lom)
   (not (ormap monster-alive? lom)))
-
-(define (monster-alive? m)
-  (> (monster-health m) 0))
 
 (define (end-turn w)
   (set-orc-world-attack#! w 0))
@@ -261,6 +248,8 @@
   (damage-monster target damage))
 
 (define (flail w)
+  (define (current-target w)
+    (list-ref (orc-world-lom w) (orc-world-target w)))
   (define target (current-target w))
   (define alive (filter monster-alive? (orc-world-lom w)))
   (define pick# (min (random-quotient (player-strength (orc-world-player w))
@@ -273,12 +262,6 @@
 
 (define (decrease-attack# w)
   (set-orc-world-attack#! w (sub1 (orc-world-attack# w))))
-
-(define (damage-monster m delta)
-  (set-monster-health! m (interval- (monster-health m) delta)))
-
-(define (current-target w)
-  (list-ref (orc-world-lom w) (orc-world-target w)))
 
 (define (move-target w delta)
   (define new (+ (orc-world-target w) delta))
@@ -307,6 +290,37 @@
              [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
   (define live-monsters (filter monster-alive? lom))
   (for-each one-monster-attacks-player live-monsters))
+
+;;; Player
+
+(define (player-update! setter selector mx)
+  (lambda (player delta)
+    (setter player (interval+ (selector player) delta mx))))
+
+(define player-health+
+  (player-update! set-player-health!   player-health   MAX-HEALTH))
+
+(define player-agility+
+  (player-update! set-player-agility!  player-agility  MAX-AGILITY))
+
+(define player-strength+
+  (player-update! set-player-strength! player-strength MAX-STRENGTH))
+
+(define (random-number-of-attacks p)
+  (random-quotient (player-agility p) ATTACKS#))
+
+(define (player-dead? p)
+  (or (zero? (player-health   p))
+      (zero? (player-agility  p))
+      (zero? (player-strength p))))
+
+;;; Monsters
+
+(define (monster-alive? m)
+  (> (monster-health m) 0))
+
+(define (damage-monster m delta)
+  (set-monster-health! m (interval- (monster-health m) delta)))
 
 ;;; Misc Functions
 
