@@ -15,10 +15,11 @@
 (define MONSTER-HEALTH0 9)
 (define CLUB-STRENGTH 8)
 
-(struct orc     (health club)      #:transparent)
-(struct hydra   (health)           #:transparent)
-(struct slime   (health sliminess) #:transparent)
-(struct brigand (health)           #:transparent)
+(struct monster (health) #:transparent)
+(struct orc     monster (club)      #:transparent)
+(struct hydra   monster ()          #:transparent)
+(struct slime   monster (sliminess) #:transparent)
+(struct brigand monster ()          #:transparent)
 
 (orc-world (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH)
            (list (orc MONSTER-HEALTH0 (add1 (random CLUB-STRENGTH))))
