@@ -6,7 +6,7 @@
 ;; -- STRUCTS --------------------------------------
 ;;
 (struct orc-world (play lom attack#) #:transparent)
-(struct player (health agility strength) #:transparent)
+(struct player (health agility strength) #:mutable #:transparent)
 (struct monster ([health #:mutable]) #:transparent)
 (struct orc monster (club) #:transparent)
 (struct hydra monster () #:transparent)
