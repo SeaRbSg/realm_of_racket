@@ -4,6 +4,9 @@
 
 ;;; Constants
 
+(define-namespace-anchor namespace-anchor)
+(define my-namespace (namespace-anchor->namespace namespace-anchor))
+
 (define MAX-HEALTH   35)
 (define MAX-AGILITY  35)
 (define MAX-STRENGTH 35)
@@ -218,15 +221,9 @@
 
 (define (all-monsters-attack-player player lom)
   (define (one-monster-attacks-player m)
-    ;; HACK omfg this is so not OO it hurts me to type it... FP fails here
-    (cond [(orc? m)
-           (orc-attack m player)]
-          [(hydra? m)
-           (hydra-attack m player)]
-          [(slime? m)
-           (slime-attack m player)]
-          [(brigand? m)
-           (brigand-attack m player)]))
+    (let* ((name (string-append (symbol->string (object-name m)) "-attack"))
+           (attack (eval (string->symbol name) my-namespace)))
+      (attack m player)))
   (define live-monsters (filter monster-alive? lom))
   (for-each one-monster-attacks-player live-monsters))
 
