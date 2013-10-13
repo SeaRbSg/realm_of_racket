@@ -220,17 +220,13 @@
   (define (one-monster-attacks-player m)
     ;; HACK omfg this is so not OO it hurts me to type it... FP fails here
     (cond [(orc? m)
-           (player-health+ player (random- (orc-club m)))]
+           (orc-attack m player)]
           [(hydra? m)
-           (player-health+ player (random- (monster-health m)))]
+           (hydra-attack m player)]
           [(slime? m)
-           (player-health+ player -1)
-           (player-agility+ player (random- (slime-sliminess m)))]
+           (slime-attack m player)]
           [(brigand? m)
-           (case (random 3)
-             [(0) (player-health+   player HEALTH-DAMAGE)]
-             [(1) (player-agility+  player AGILITY-DAMAGE)]
-             [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
+           (brigand-attack m player)]))
   (define live-monsters (filter monster-alive? lom))
   (for-each one-monster-attacks-player live-monsters))
 
@@ -294,11 +290,27 @@
 
 ;;; Monsters
 
+(define (brigand-attack m p)
+  (case (random 3)
+    [(0) (player-health+   p HEALTH-DAMAGE)]
+    [(1) (player-agility+  p AGILITY-DAMAGE)]
+    [(2) (player-strength+ p STRENGTH-DAMAGE)]))
+
 (define (damage-monster m delta)
   (set-monster-health! m (interval- (monster-health m) delta)))
 
+(define (hydra-attack m p)
+  (player-health+ p (random- (monster-health m))))
+
 (define (monster-alive? m)
   (> (monster-health m) 0))
+
+(define (orc-attack m p)
+  (player-health+ p (random- (orc-club m)))  )
+
+(define (slime-attack m p)
+  (player-health+ p -1)
+  (player-agility+ p (random- (slime-sliminess m))))
 
 ;;; Misc Functions
 
