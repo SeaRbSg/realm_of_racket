@@ -333,16 +333,16 @@
     (set-orc-world-attack#! w (random-number-of-attacks player))))
 
 (define (all-monsters-attack-player player lom)
-  (define (one-monster-attacks-player m)
+  (define (one-monster-attacks-player monster)
     (cond
-      [(orc? m) 
-       (player-health+ player (random- (orc-club m)))]
-      [(hydra? m) 
-       (player-health+ player (random- (monster-health m)))]
-      [(slime? m) 
+      [(orc? monster) 
+       (player-health+ player (random- (orc-club monster)))]
+      [(hydra? monster) 
+       (player-health+ player (random- (monster-health monster)))]
+      [(slime? monster) 
        (player-health+ player -1)
        (player-agility+ player (random- (slime-sliminess monster)))]
-      [(brigand? m)
+      [(brigand? monster)
        (case (random 3)
          [(0) (player-health+ player HEALTH-DAMAGE)]
          [(1) (player-agility+ player AGILITY-DAMAGE)]
