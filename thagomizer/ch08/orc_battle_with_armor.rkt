@@ -297,10 +297,20 @@
           (above r (arrange (drop lom PER-ROW)))]))
 
 
-
 ;; Player functions
 (define (initialize-player)
   (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH MAX-ARMOR))
+
+(define (attack-player setter player delta)
+  (if (> (player-armor player) 0)
+      (damage-armor-and-player setter player delta)
+      (setter player delta)))
+
+(define (damage-armor-and-player setter player delta)
+  (define armor-damage (quotient delta 2))
+  (define player-damage (- delta armor-damage))
+  (player-armor+ player armor-damage)
+  (setter player player-damage))
 
 (define (player-update! setter selector max)
   (lambda (player delta)
@@ -314,6 +324,9 @@
 
 (define player-strength+
   (player-update! set-player-strength! player-strength MAX-STRENGTH))
+
+(define player-armor+
+  (player-update! set-player-armor! player-armor MAX-ARMOR))
 
 (define (heal w)
   (decrease-attack# w)
@@ -349,15 +362,15 @@
   (define (one-monster-attacks-player monster)
     (cond
       [(orc? monster) 
-       (player-health+ player (random- (orc-club monster)))]
+       (attack-player player-health+ player (random- (orc-club monster)))]
       [(hydra? monster) 
-       (player-health+ player (random- (monster-health monster)))]
+       (attack-player player-health+ player (random- (monster-health monster)))]
       [(slime? monster) 
-       (player-health+ player -1)
-       (player-agility+ player (random- (slime-sliminess monster)))]
+       (attack-player player-health+ player -1)
+       (attack-player player-agility+ player (random- (slime-sliminess monster)))]
       [(brigand? monster)
        (case (random 3)
-         [(0) (player-health+ player HEALTH-DAMAGE)]
-         [(1) (player-agility+ player AGILITY-DAMAGE)]
-         [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
+         [(0) (attack-player player-health+ player HEALTH-DAMAGE)]
+         [(1) (attack-player player-agility+ player AGILITY-DAMAGE)]
+         [(2) (attack-player player-strength+ player STRENGTH-DAMAGE)])]))
   (for-each one-monster-attacks-player (live-monsters lom)))
