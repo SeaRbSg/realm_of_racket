@@ -28,6 +28,7 @@
 (define HEALING 8)
 (define AGILIFYING 8)
 (define STRENGTHENING 8)
+(define ARMOR-FACTOR 3)
 
 ;; Monster
 (define MONSTER# 12)
@@ -307,8 +308,8 @@
       (setter player delta)))
 
 (define (damage-armor-and-player setter player delta)
-  (define armor-damage (quotient delta 2))
-  (define player-damage (- delta armor-damage))
+  (define player-damage (quotient delta ARMOR-FACTOR))
+  (define armor-damage (- delta player-damage))
   (player-armor+ player armor-damage)
   (setter player player-damage))
 
