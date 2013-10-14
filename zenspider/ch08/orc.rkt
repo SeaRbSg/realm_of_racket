@@ -216,10 +216,10 @@
 ;;; Actions
 
 (define (all-monsters-attack-player player lom)
+  (define (attack-name m)
+    (string->symbol (string-append (symbol->string (object-name m)) "-attack")))
   (define (one-monster-attacks-player m)
-    (let* ((name (string-append (symbol->string (object-name m)) "-attack"))
-           (attack (eval (string->symbol name) my-namespace)))
-      (attack m player)))
+    ((eval (attack-name m) my-namespace) m player))
   (define live-monsters (filter monster-alive? lom))
   (for-each one-monster-attacks-player live-monsters))
 
