@@ -12,6 +12,7 @@
 (struct hydra monster () #:transparent)
 (struct slime monster (sliminess) #:transparent)
 (struct brigand monster () #:transparent)
+(struct stega monster (spikiness) #:transparent)
 
 ;;
 ;; -- CONSTANTS ------------------------------------
@@ -37,6 +38,7 @@
 (define MONSTER-HEALTH0 9)
 (define CLUB-STRENGTH 8)
 (define SLIMINESS 5)
+(define SPIKINESS 8)
 
 (define HEALTH-DAMAGE -2)
 (define AGILITY-DAMAGE -3)
@@ -71,6 +73,7 @@
 (define HYDRA   (bitmap "hydra.png"))
 (define SLIME   (bitmap "slime.bmp"))
 (define BRIGAND (bitmap "brigand.bmp"))
+(define STEGA (bitmap "stega.png"))
 
 (define PIC-LIST (list ORC HYDRA SLIME BRIGAND))
 (define w (apply max (map image-width PIC-LIST)))
@@ -84,6 +87,7 @@
 (define HYDRA-IMAGE   (overlay HYDRA FRAME))
 (define SLIME-IMAGE   (overlay SLIME FRAME))
 (define BRIGAND-IMAGE (overlay BRIGAND FRAME))
+(define STEGA-IMAGE (overlay STEGA FRAME))
 
 ;; Fonts & Texts & Colors
 (define AGILITY-COLOR "blue")
@@ -354,11 +358,12 @@
    MONSTER#
    (lambda (_)
      (define health (random+ MONSTER-HEALTH0))
-     (case (random 4)
+     (case (random 5)
        [(0) (orc ORC-IMAGE health (random+ CLUB-STRENGTH))]
        [(1) (hydra HYDRA-IMAGE health)]
        [(2) (slime SLIME-IMAGE health (random+ SLIMINESS))]
-       [(3) (brigand BRIGAND-IMAGE health)]))))
+       [(3) (brigand BRIGAND-IMAGE health)]
+       [(4) (stega STEGA-IMAGE health (random+ SPIKINESS))]))))
 
 (define (give-monster-turn-if-attack#=0 w)
   (when (zero? (orc-world-attack# w))
@@ -380,5 +385,7 @@
        (case (random 3)
          [(0) (attack-player player-health+ player HEALTH-DAMAGE)]
          [(1) (attack-player player-agility+ player AGILITY-DAMAGE)]
-         [(2) (attack-player player-strength+ player STRENGTH-DAMAGE)])]))
+         [(2) (attack-player player-strength+ player STRENGTH-DAMAGE)])]
+      [(stega? monster)
+       (player-agility+ player (random- (stega-spikiness monster)))]))
   (for-each one-monster-attacks-player (live-monsters lom)))
