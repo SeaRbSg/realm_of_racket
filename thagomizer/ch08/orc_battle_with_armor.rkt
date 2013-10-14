@@ -21,14 +21,16 @@
 (define MAX-HEALTH 35)
 (define MAX-AGILITY 35)
 (define MAX-STRENGTH 35)
-(define MAX-ARMOR 15)
+(define MAX-ARMOR 18)
 (define ATTACKS# 4)
 (define STAB-DAMAGE 2)
 (define FLAIL-DAMAGE 3)
+(define ARMOR-FACTOR 3)
 (define HEALING 8)
 (define AGILIFYING 8)
 (define STRENGTHENING 8)
-(define ARMOR-FACTOR 3)
+(define ARMORING 4)
+
 
 ;; Monster
 (define MONSTER# 12)
@@ -148,6 +150,7 @@
     [(key=? "s" k) (stab w)]
     [(key=? "h" k) (heal w)]
     [(key=? "f" k) (flail w)]
+    [(key=? "b" k) (block w)]
     [(key=? "e" k) (end-turn w)]
     [(key=? "n" k) (initialize-orc-world)]
     [(key=? "right" k) (move-target w +1)]
@@ -340,6 +343,10 @@
 (define (strengthen w)
   (decrease-attack# w)
   (player-strength+ (orc-world-player w) STRENGTHENING))
+
+(define (block w)
+  (decrease-attack# w)
+  (player-armor+ (orc-world-player w) ARMORING))
 
 ;; Monster functions
 (define (initialize-monsters)
