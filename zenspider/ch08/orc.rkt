@@ -8,6 +8,7 @@
 (define my-namespace (namespace-anchor->namespace namespace-anchor))
 
 (define MAX-HEALTH   35)
+(define MAX-ARMOR    25)
 (define MAX-AGILITY  35)
 (define MAX-STRENGTH 35)
 
@@ -15,6 +16,7 @@
 (define STAB-DAMAGE  2)
 (define FLAIL-DAMAGE 3)
 (define HEALING      8)
+(define BLOCKING     5)
 
 (define MONSTER-HEALTH0 9)
 (define CLUB-STRENGTH   8)
@@ -49,6 +51,7 @@
 (define STRENGTH-DAMAGE -4)
 
 (define STRENGTH  "strength")
+(define ARMOR     "armor")
 (define AGILITY   "agility")
 (define HEALTH    "health")
 (define LOSE      "YOU LOSE")
@@ -64,6 +67,7 @@
 
 (define AGILITY-COLOR  "blue")
 (define HEALTH-COLOR   "crimson")
+(define ARMOR-COLOR    "purple")
 (define STRENGTH-COLOR "forest green")
 (define MONSTER-COLOR  "crimson")
 (define MESSAGE-COLOR  "black")
@@ -84,7 +88,7 @@
 
 (struct orc-world (player lom attack# target) #:transparent #:mutable)
 
-(struct player (health agility strength) #:transparent #:mutable)
+(struct player (health armor agility strength) #:transparent #:mutable)
 
 (struct monster (image [health #:mutable]) #:transparent)
 (struct orc     monster (club)             #:transparent)
@@ -124,7 +128,7 @@
   (orc-world player0 lom0 (random-number-of-attacks player0) 0))
 
 (define (initialize-player)
-  (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH))
+  (player MAX-HEALTH MAX-ARMOR MAX-AGILITY MAX-STRENGTH))
 
 (define (instructions w)
   (define na (number->string (orc-world-attack# w)))
@@ -144,6 +148,7 @@
       [(r)     (rest     w)]
       [(p)     (potion   w)]
       [(h)     (heal     w)]
+      [(b)     (block    w)]
       [(f)     (flail    w)]
       [(e)     (end-turn w)]
       [(n)     (initialize-orc-world)]
@@ -192,6 +197,7 @@
   (define s (player-strength p))
   (define a (player-agility  p))
   (define h (player-health   p))
+  (define x (player-armor   p))
 
   (above/align 'left
                (status-bar s MAX-STRENGTH STRENGTH-COLOR STRENGTH)
@@ -200,6 +206,7 @@
                V-SPACER
                (status-bar h MAX-HEALTH   HEALTH-COLOR   HEALTH)
                V-SPACER
+               (status-bar x MAX-ARMOR    ARMOR-COLOR    ARMOR)
                V-SPACER
                V-SPACER
                PLAYER-IMAGE))
@@ -248,6 +255,10 @@
   (decrease-attack# w)
   (player-health+ (orc-world-player w) HEALING))
 
+(define (block w)
+  (decrease-attack# w)
+  (player-armor+ (orc-world-player w) BLOCKING))
+
 (define (move-target w delta)
   (define new (+ (orc-world-target w) delta))
   (set-orc-world-target! w (modulo new MONSTER#)))
@@ -285,8 +296,18 @@
 (define player-agility+
   (player-update! set-player-agility!  player-agility  MAX-AGILITY))
 
-(define player-health+
-  (player-update! set-player-health!   player-health   MAX-HEALTH))
+(define player-armor+
+  (player-update! set-player-armor!  player-armor  MAX-ARMOR))
+
+(define (player-health+ p delta)
+  ;; available armor can absorb 80% of the attack, until 0
+  (define armor-delta (if (negative? delta)
+                          (min (* delta 4/5) (player-armor p))
+                          0))
+  (define health-delta (- delta armor-delta))
+
+  (set-player-health! p (interval+ (player-health p) health-delta MAX-HEALTH))
+  (player-armor+ p armor-delta))
 
 (define player-strength+
   (player-update! set-player-strength! player-strength MAX-STRENGTH))
