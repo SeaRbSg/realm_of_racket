@@ -33,8 +33,9 @@
 (define SLIME        (bitmap "slime.bmp"))
 (define BRIGAND      (bitmap "brigand.bmp"))
 (define PLAYER-IMAGE (bitmap "player.bmp"))
+(define URUK         (bitmap "uruk.png"))
 
-(define PIC-LIST (list ORC HYDRA SLIME BRIGAND))
+(define PIC-LIST (list ORC HYDRA SLIME BRIGAND URUK))
 (define w (apply max (map image-width PIC-LIST)))
 (define h (apply max (map image-height PIC-LIST)))
 
@@ -45,6 +46,7 @@
 (define HYDRA-IMAGE   (overlay HYDRA   FRAME))
 (define SLIME-IMAGE   (overlay SLIME   FRAME))
 (define BRIGAND-IMAGE (overlay BRIGAND FRAME))
+(define URUK-IMAGE    (overlay URUK    FRAME))
 
 (define HEALTH-DAMAGE   -2)
 (define AGILITY-DAMAGE  -3)
@@ -95,6 +97,7 @@
 (struct hydra   monster ()                 #:transparent)
 (struct slime   monster (sliminess)        #:transparent)
 (struct brigand monster ()                 #:transparent)
+(struct uruk    orc ()                     #:transparent)
 
 ;;; GUI
 
@@ -116,8 +119,9 @@
   (build-list MONSTER#
               (lambda (_)
                 (define health (random+ MONSTER-HEALTH0))
-                (case (random 4)
+                (case (random 5)
                   [(0) (orc     ORC-IMAGE     health (random+ CLUB-STRENGTH))]
+                  [(4) (uruk    URUK-IMAGE    health (random+ CLUB-STRENGTH))]
                   [(1) (hydra   HYDRA-IMAGE   health)]
                   [(2) (slime   SLIME-IMAGE   health (random+ SLIMINESS))]
                   [(3) (brigand BRIGAND-IMAGE health)]))))
@@ -299,6 +303,9 @@
 (define player-armor+
   (player-update! set-player-armor!  player-armor  MAX-ARMOR))
 
+(define (player-health+! p delta)
+  (set-player-health! p (interval+ (player-health p) delta MAX-HEALTH)))
+
 (define (player-health+ p delta)
   ;; available armor can absorb 80% of the attack, until 0
   (define armor-delta (if (negative? delta)
@@ -306,7 +313,7 @@
                           0))
   (define health-delta (- delta armor-delta))
 
-  (set-player-health! p (interval+ (player-health p) health-delta MAX-HEALTH))
+  (player-health+! p health-delta)
   (player-armor+ p armor-delta))
 
 (define player-strength+
@@ -331,6 +338,9 @@
 
 (define (orc-attack m p)
   (player-health+ p (random- (orc-club m)))  )
+
+(define (uruk-attack m p)
+  (player-health+! p (random- (orc-club m))))
 
 (define (slime-attack m p)
   (player-health+ p -1)
