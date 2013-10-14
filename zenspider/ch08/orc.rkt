@@ -57,7 +57,7 @@
 (define REMAINING "Remaining attacks ")
 (define INSTRUCTIONS-2 "Select a monster using the arrow keys")
 (define INSTRUCTIONS-1
-  "Press S to stab a monster | Press F to Flail wildly | Press H to Heal")
+  "S: stab | F: flail | H: heal | P: potion | R: rest")
 
 (define HEALTH-BAR-HEIGHT 12)
 (define HEALTH-BAR-WIDTH  50)
@@ -140,7 +140,9 @@
   (unless (zero? (orc-world-attack# w))
 
     (case (string->symbol k)
-      [(a)     (stab     w)]
+      [(a)     (attack   w)]
+      [(r)     (rest     w)]
+      [(p)     (potion   w)]
       [(h)     (heal     w)]
       [(f)     (flail    w)]
       [(e)     (end-turn w)]
@@ -250,7 +252,15 @@
   (define new (+ (orc-world-target w) delta))
   (set-orc-world-target! w (modulo new MONSTER#)))
 
-(define (stab w)
+(define (potion w)
+  (decrease-attack# w)
+  (player-agility+ (orc-world-player w) HEALING))
+
+(define (rest w)
+  (decrease-attack# w)
+  (player-strength+ (orc-world-player w) HEALING))
+
+(define (attack w)
   (define target (list-ref (orc-world-lom w) (orc-world-target w)))
   (define damage (random-quotient (player-strength (orc-world-player w))
                                   STAB-DAMAGE))
