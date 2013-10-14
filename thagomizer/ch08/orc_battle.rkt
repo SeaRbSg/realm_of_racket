@@ -172,7 +172,7 @@
   (> (monster-health m) 0))
 
 (define (live-monsters lom)
-  (filter (monster-alive? lom)))
+  (filter monster-alive? lom))
 
 (define (end-turn w)
   (set-orc-world-attack#! w 0))
