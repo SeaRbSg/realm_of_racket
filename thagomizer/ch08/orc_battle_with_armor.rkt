@@ -332,21 +332,21 @@
 (define player-armor+
   (player-update! set-player-armor! player-armor MAX-ARMOR))
 
+(define (level-up f world delta)
+  (decrease-attack# world)
+  (f (orc-world-player world) delta))
+
 (define (heal w)
-  (decrease-attack# w)
-  (player-health+ (orc-world-player w) HEALING))
+  (level-up player-health+ w HEALING))
 
 (define (agilify w)
-  (decrease-attack# w)
-  (player-agility+ (orc-world-player w) AGILIFYING))
+  (level-up player-agility+ w AGILIFYING))
 
 (define (strengthen w)
-  (decrease-attack# w)
-  (player-strength+ (orc-world-player w) STRENGTHENING))
+  (level-up player-strength+ w STRENGTHENING))
 
 (define (block w)
-  (decrease-attack# w)
-  (player-armor+ (orc-world-player w) ARMORING))
+  (level-up player-armor+ w ARMORING))
 
 ;; Monster functions
 (define (initialize-monsters)
