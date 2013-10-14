@@ -25,6 +25,8 @@
 (define STAB-DAMAGE 2)
 (define FLAIL-DAMAGE 3)
 (define HEALING 8)
+(define AGILIFYING 8)
+(define STRENGTHENING 8)
 
 ;; Monster
 (define MONSTER# 12)
@@ -46,7 +48,7 @@
 (define REMAINING "Remaining attacks ")
 (define INSTRUCTIONS-2 "Select a monster using the arrow keys")
 (define INSTRUCTIONS-1
-  "Press S to stab a monster | Press F to Flail wildly | Press H to Heal")
+  "Press S to Stab | Press F to Flail | Press H to Heal | Press A to Agilify | Press G to Strengthen")
 
 
 ;; Rendering
@@ -139,6 +141,8 @@
 (define (player-acts-on-monsters w k)
   (cond
     [(zero? (orc-world-attack# w)) (void)]
+    [(key=? "a" k) (agilify w)]
+    [(key=? "g" k) (strengthen w)]
     [(key=? "s" k) (stab w)]
     [(key=? "h" k) (heal w)]
     [(key=? "f" k) (flail w)]
@@ -180,6 +184,14 @@
 (define (heal w)
   (decrease-attack# w)
   (player-health+ (orc-world-player w) HEALING))
+
+(define (agilify w)
+  (decrease-attack# w)
+  (player-agility+ (orc-world-player w) AGILIFYING))
+
+(define (strengthen w)
+  (decrease-attack# w)
+  (player-strength+ (orc-world-player w) STRENGTHENING))
 
 (define (stab w)
   (decrease-attack# w)
