@@ -3,7 +3,7 @@
 
 ;;CONSTANTS
 (define SIZE 30)
-(define SEG-SIZE 20)
+(define SEG-SIZE 15)
 (define WIDTH-PX  (* SEG-SIZE 30))
 (define HEIGHT-PX (* SEG-SIZE 30))
 (define MT-SCENE (empty-scene WIDTH-PX HEIGHT-PX))
@@ -16,7 +16,8 @@
 (define HEAD-DOWN-IMG (rotate 90 HEAD-LEFT-IMG))
 (define HEAD-UP-IMG (flip-vertical HEAD-DOWN-IMG))
 (define ENDGAME-TEXT-SIZE 50)
-(define TICK-RATE 1/8)
+(define TICK-RATE 1/10)
+(define goo-eaten 0)
 
 ;;MAIN STRUCTS
 
@@ -84,6 +85,7 @@
         [(string=? dir "right") (posn-move head 1 0)]))
 
 (define (eat goos goo-to-eat)
+  (set! goo-eaten (+ 1 goo-eaten))
   (cons (fresh-goo) (remove goo-to-eat goos)))
 
 ;;GROW AND SLITHER
@@ -197,7 +199,7 @@
       (= 0 y) (= y SIZE)))
 
 (define (render-end w)
-  (overlay (text "Game Over" ENDGAME-TEXT-SIZE "black")
+  (overlay (text (string-append "You ate " (number->string goo-eaten) " goo") ENDGAME-TEXT-SIZE "black")
            (render-pit w)))
 
 ;;AUXILIARY FUNCTIONS
