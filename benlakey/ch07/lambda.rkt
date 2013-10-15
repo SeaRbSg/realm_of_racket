@@ -26,19 +26,35 @@
 
 (my-filter (lambda (n) (equal? 1 n)) '(1 2 1 3 1 4))
 
-;; They call this 'my-ormap' in the book but that seems silly. I called it 'any'.
+;; They call these 'my-ormap' and 'my-andmap' in the book but that seems silly. 
+;; I called them 'any' and 'all'.
 (define (any predicate lst)
   (cond [(empty? lst) #f]
         [else (or (predicate (first lst))
                   (any predicate (rest lst)))]))
 
-(any (lambda (n) (equal? n 2)) '(1 2 3))
-(any (lambda (n) (equal? n 4)) '(1 2 3))
+(define (all predicate lst)
+  (cond [(empty? lst) #f]
+        [else (and (predicate (first lst))
+                   (all predicate (rest lst)))]))
+
+;; 'my-folder' seemed silly too so I called this 'build-from'. 
+(define (build-from func base lst)
+  (cond [(empty? lst) base]
+        [else (func (first lst) (build-from func base (rest lst)))]))
 
 ;; Tests! I hadn't written any in the chapters prior because I'm bad.
 (module+ test
   (require rackunit)
   
   (define test-predicate (lambda (n) (equal? n 2)))
-  (check-equal? #f (any test-predicate '(1 3 4)))
-  (check-equal? #t (any test-predicate '(1 2 4))))
+  
+  (check-equal? (any test-predicate '(1 3 4)) #f)
+  (check-equal? (any test-predicate '(1 2 4)) #t)
+
+  (check-equal? (all test-predicate '(2 2 1)) #f)
+  (check-equal? (any test-predicate '(2 2 2)) #t)
+  
+  (define test-accumulator (lambda (x y) (+ x y)))
+  
+  (check-equal? (build-from test-accumulator 2 '(1 2 3)) 8))
