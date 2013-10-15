@@ -150,6 +150,10 @@
   (define snake (pit-snake w))
   (or (self-colliding? snake) (wall-colliding? snake)))
 
+(define (number-of-goos w)
+  (define goos (pit-goos w))
+  (length goos))
+
 ;; game stepping function
 (define (next-pit w)
   (define snake (pit-snake w))
@@ -161,9 +165,21 @@
 
 
 ;; rendering
+(define (render-goos-remaining w)
+  (text (string-append 
+         "Goos remaining:" 
+         (number->string (number-of-goos w)))
+        ENDGAME-TEXT-SIZE 
+        "black"))
+
+(define (render-game-over)
+  (text "Game Over" ENDGAME-TEXT-SIZE "black"))
+
 (define (render-end w)
-      (overlay (text "Game Over" ENDGAME-TEXT-SIZE "black")
-               (render-pit w)))
+  (overlay (overlay/offset (render-game-over)
+                           0 ENDGAME-TEXT-SIZE
+                           (render-goos-remaining w))
+           (render-pit w)))
 
 (define (goo-list+scene goos scene)
   (define (get-points-from-goo goos)
