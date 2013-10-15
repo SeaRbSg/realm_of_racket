@@ -2,10 +2,10 @@
 (require 2htdp/universe 2htdp/image)
 
 ;; constants
-(define TICK-RATE 1/10)
+(define TICK-RATE 1/5)
 (define SIZE 30)
 
-(define SEG-SIZE 15)
+(define SEG-SIZE 30)
 
 (define MAX-GOO 5)
 (define EXPIRATION-TIME 150)
@@ -25,6 +25,11 @@
 
 (define ENDGAME-TEXT-SIZE 15)
 
+(define LEFT "left")
+(define RIGHT "right")
+(define UP "up")
+(define DOWN "down")
+
 ;; primary data structures
 (struct pit (snake goos) #:transparent)
 (struct snake (direction segments) #:transparent)
@@ -37,16 +42,16 @@
         [else w]))
 
 (define (dir? x)
-      (or (key=? x "up")
-          (key=? x "down")
-          (key=? x "left")
-          (key=? x "right")))
+      (or (key=? x UP)
+          (key=? x DOWN)
+          (key=? x LEFT)
+          (key=? x RIGHT)))
 
 (define (opposite-dir? d1 d2)
-  (cond [(string=? d1 "up") (string=? d2 "down")]
-        [(string=? d1 "down") (string=? d2 "up")]
-        [(string=? d1 "left") (string=? d2 "right")]
-        [(string=? d1 "right") (string=? d2 "left")]))
+  (cond [(string=? d1 UP) (string=? d2 DOWN)]
+        [(string=? d1 DOWN) (string=? d2 UP)]
+        [(string=? d1 LEFT) (string=? d2 RIGHT)]
+        [(string=? d1 RIGHT) (string=? d2 LEFT)]))
 
 (define (world-change-dir w d)
   (define the-snake (pit-snake w))
@@ -108,10 +113,10 @@
 (define (next-head sn)
   (define head (snake-head sn))
   (define direction (snake-direction sn))
-  (cond [(string=? direction "up") (point-move head 0 -1)]
-        [(string=? direction "down") (point-move head 0 1)]
-        [(string=? direction "left") (point-move head -1 0)]
-        [(string=? direction "right") (point-move head 1 0)]))
+  (cond [(string=? direction UP) (point-move head 0 -1)]
+        [(string=? direction DOWN) (point-move head 0 1)]
+        [(string=? direction LEFT) (point-move head -1 0)]
+        [(string=? direction RIGHT) (point-move head 1 0)]))
 
 (define (all-but-last segments)
   (cond [(empty? (rest segments)) empty]
@@ -206,10 +211,10 @@
         (img-list+scene  (snake-body snake) SEG-IMG scene))
       (define dir (snake-direction snake))
       (img+scene (snake-head snake)
-                 (cond [(string=? "up" dir) HEAD-UP-IMG]
-                       [(string=? "down" dir) HEAD-DOWN-IMG]
-                       [(string=? "left" dir) HEAD-LEFT-IMG]
-                       [(string=? "right" dir) HEAD-RIGHT-IMG])
+                 (cond [(string=? UP dir) HEAD-UP-IMG]
+                       [(string=? DOWN dir) HEAD-DOWN-IMG]
+                       [(string=? LEFT dir) HEAD-LEFT-IMG]
+                       [(string=? RIGHT dir) HEAD-RIGHT-IMG])
                  snake-body-scene))
 
 (define (render-pit w)
@@ -219,7 +224,7 @@
 
 ;; main function
 (define (start-snake)
-  (big-bang (pit (snake "right" (list (point 1 1)))
+  (big-bang (pit (snake RIGHT (list (point 1 1)))
                  (list (fresh-goo)
                        (fresh-goo)
                        (fresh-goo)
