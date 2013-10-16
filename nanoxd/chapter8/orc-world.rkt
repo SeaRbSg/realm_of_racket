@@ -164,7 +164,7 @@
 
 (define (message msg)
   (text msg MESSAGES-SIZE MESSAGE-COLOR))
-      
+
 (define (render-orc-world w t additional-text)
   (define i-player (render-player (orc-world-player w)))
   (define i-monster (render-monsters (orc-world-lom w) t))
@@ -207,7 +207,7 @@
     (if (number? with-target)
         (list-ref lom with-target)
         'a-silly-symbol-that-cannot-be-eq-to-an-orc))
-  
+
   (define (render-one-monster m)
     (define image
       (if (eq? m target)
@@ -326,7 +326,6 @@
          [(2) (player-strength+ player STRENGTH-DAMAGE)])]))
   (define live-monsters (filter monster-alive? lom))
   (for-each one-monster-attacks-player live-monsters))
-      
 
 (define (start)
   (big-bang (initialize-orc-world)
@@ -339,17 +338,17 @@
 ;; Tests
 (module+ test
   (require rackunit)
-  
+
   (check-equal? (let ((p (player 1 2 3)))
                   (player-strength+ p -3)
                   p)
                 (player 1 2 0))
-  
+
   (check-equal? (let ((p (player 4 2 3)))
                   (player-health+ p -3)
                   p)
                 (player 1 2 3))
-  
+
   (check-equal? (let ((p (player 1 2 3)))
                   (player-agility+ p -2)
                   p)
