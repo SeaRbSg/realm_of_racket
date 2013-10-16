@@ -26,6 +26,8 @@
 (define STAB-DAMAGE 2)
 (define FLAIL-DAMAGE 3)
 (define HEALING 8)
+(define AGILING 8)
+(define STRENGTHENING 8)
 (define MONSTER# 12)
 (define PER-ROW 4)
 (define CLUB-STRENGTH 8)
@@ -46,8 +48,8 @@
 (define PIC-LIST (list ORC HYDRA SLIME BRIGAND))
 (define w (apply max (map image-width PIC-LIST)))
 (define h (apply max (map image-height PIC-LIST)))
+(define INSTRUCTIONS-1 "Press S to stab a monster | Press F to Flail wildly | Press H to Heal | Press A to be Agile | Press V to Strengthen")
 (define INSTRUCTIONS-2 "Select a monster using the arrow keys")
-(define INSTRUCTIONS-1 "Press S to stab a monster | Press F to Flail wildly | Press H to Heal")
 
 (define FRAME (rectangle w h 'outline 'white))
 (define TARGET (circle (- (/ w 2) 2) 'outline 'blue))
@@ -116,6 +118,8 @@
     [(key=? "f" k) (flail w)]
     [(key=? "e" k) (end-turn w)]
     [(key=? "n" k) (initialize-orc-world)]
+    [(key=? "a" k) (agile w)]
+    [(key=? "v" k) (strengthen w)]
     [(key=? "right" k) (move-target w +1)]
     [(key=? "left" k) (move-target w -1)]
     [(key=? "up" k)   (move-target w (- PER-ROW))]
@@ -242,6 +246,14 @@
 (define (heal w)
   (decrease-attack# w)
   (player-health+ (orc-world-player w) HEALING))
+
+(define (strengthen w)
+  (decrease-attack# w)
+  (player-strength+ (orc-world-player w) STRENGTHENING))
+
+(define (agile w)
+  (decrease-attack# w)
+  (player-agility+ (orc-world-player w) AGILING))
 
 (define (stab w)
   (decrease-attack# w)
