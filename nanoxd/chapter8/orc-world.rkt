@@ -4,7 +4,7 @@
 
 ; Structures
 (struct orc-world (player lom attack# target) #:transparent #:mutable)
-(struct player (health agility strength) #:mutable #:transparent)
+(struct player (health agility strength armor) #:mutable #:transparent)
 (struct monster (image [health #:mutable]) #:transparent)
 (struct orc monster (club) #:transparent)
 (struct hydra monster () #:transparent)
@@ -15,6 +15,8 @@
 (define MAX-HEALTH 35)
 (define MAX-AGILITY 35)
 (define MAX-STRENGTH 35)
+(define MAX-ARMOR 20)
+(define GUARDING 6)
 (define MONSTER-HEALTH0 10)
 (define INSTRUCTION-TEXT-SIZE 16)
 (define MESSAGES-SIZE 40)
@@ -62,6 +64,7 @@
 (define MONSTER-COLOR "crimson")
 (define MESSAGE-COLOR "black")
 (define ATTACK-COLOR "crimson")
+(define ARMOR-COLOR "yellow")
 (define ORC-IMAGE     (overlay ORC FRAME))
 (define HYDRA-IMAGE   (overlay HYDRA FRAME))
 (define SLIME-IMAGE   (overlay SLIME FRAME))
@@ -95,6 +98,8 @@
   (player-update! set-player-agility! player-agility MAX-AGILITY))
 (define player-strength+
   (player-update! set-player-strength! player-strength MAX-STRENGTH))
+(define player-armor+
+  (player-update! set-player-armor! player-armor MAX-ARMOR))
 
 (define (initialize-orc-world)
   (define player0 (initialize-player))
@@ -120,6 +125,7 @@
     [(key=? "n" k) (initialize-orc-world)]
     [(key=? "a" k) (agile w)]
     [(key=? "v" k) (strengthen w)]
+    [(key=? "g" k) (guard w)]
     [(key=? "right" k) (move-target w +1)]
     [(key=? "left" k) (move-target w -1)]
     [(key=? "up" k)   (move-target w (- PER-ROW))]
@@ -127,7 +133,7 @@
   (give-monster-turn-if-attack#=0 w) w)
 
 (define (initialize-player)
-  (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH))
+  (player MAX-HEALTH MAX-AGILITY MAX-STRENGTH MAX-ARMOR))
 
 (define (random-number-of-attacks p)
   (random-quotient (player-agility p) ATTACKS#))
@@ -176,6 +182,7 @@
   (define s (player-strength p))
   (define a (player-agility p))
   (define h (player-health p))
+  (define g (player-armor p))
   (above/align
    "left"
    (status-bar s MAX-STRENGTH STRENGTH-COLOR "STRENGTH")
@@ -183,6 +190,8 @@
    (status-bar s MAX-AGILITY AGILITY-COLOR "AGILITY")
    V-SPACER
    (status-bar s MAX-HEALTH HEALTH-COLOR "HEALTH")
+   V-SPACER
+   (status-bar s MAX-ARMOR ARMOR-COLOR ARMOR)
    V-SPACER V-SPACER V-SPACER
    PLAYER-IMAGE))
 
@@ -254,6 +263,10 @@
 (define (agile w)
   (decrease-attack# w)
   (player-agility+ (orc-world-player w) AGILING))
+
+(define (guard w)
+  (decrease-attack# w)
+  (player-armor+ (orc-world-player w) GUARDING))
 
 (define (stab w)
   (decrease-attack# w)
