@@ -1,7 +1,7 @@
 #lang racket
 (require rackunit rackunit/text-ui)
 
-;; 
+;;
 ;; 7.1 Functions as Values
 ;;
 
@@ -131,7 +131,7 @@
 
 ;;
 ;; 7.6 apply
-;; 
+;;
 
 (define (sum lon) (apply + lon))
 

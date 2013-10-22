@@ -48,7 +48,7 @@
 (define WALL-LIFE 50)
 (define WALL-COUNT 10)
 
-;; 
+;;
 ;; Functions
 ;;
 
@@ -64,7 +64,7 @@
             (to-draw render-pit)
             (stop-when dead? render-end)))
 
-;; General Utility 
+;; General Utility
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
        (= (posn-y p1) (posn-y p2))))
@@ -88,7 +88,7 @@
 (define (img-list+scene posns img scene)
   (cond [(empty? posns) scene]
         [else (img+scene (first posns)
-                         img 
+                         img
                          (img-list+scene (rest posns) img scene))]))
 
 (define (img+scene posn img scene)
@@ -114,7 +114,7 @@
               ;; consists of the head and at least one segment
               (cons? (rest (snake-segs the-snake))))
          (stop-with w)]
-        [else 
+        [else
          (pit (snake-change-dir the-snake d)
               (pit-goos w)
               (pit-walls w)
@@ -126,8 +126,8 @@
         [else w]))
 
 (define (render-end w)
-  (overlay (text 
-            (string-append "Game Over. " 
+  (overlay (text
+            (string-append "Game Over. "
                            (number->string (pit-goos-eaten w))
                            " goos eaten!")
             ENDGAME-TEXT-SIZE "black")
@@ -148,15 +148,15 @@
   (define goos-eaten (pit-goos-eaten w))
   (define goo-to-eat (can-eat snake goos))
     (if goo-to-eat
-      (pit 
-       (grow snake (goo-type goo-to-eat)) 
-       (age-goo (eat goos goo-to-eat)) 
+      (pit
+       (grow snake (goo-type goo-to-eat))
+       (age-goo (eat goos goo-to-eat))
        walls
        (add1 goos-eaten)
        wall-expire)
-      (pit 
-       (slither snake) 
-       (age-goo goos) 
+      (pit
+       (slither snake)
+       (age-goo goos)
        walls
        goos-eaten
        wall-expire)))
@@ -213,12 +213,12 @@
 
 (define (goo-list+scene goos scene)
   (cond [(empty? goos) scene]
-        [else 
+        [else
          (define goo (first goos))
          (define posn (goo-loc goo))
          (define img (img-for-goo goo))
-         (img+scene posn 
-                    img 
+         (img+scene posn
+                    img
                     (goo-list+scene (rest goos) scene))]))
 
 
@@ -241,8 +241,8 @@
 
 
 (define (grow sn grow-by)
-  (define new-snake (snake 
-                     (snake-dir sn) 
+  (define new-snake (snake
+                     (snake-dir sn)
                      (cons (next-head sn) (snake-segs sn))))
   (cond [(equal? grow-by 1) new-snake]
         [else (grow new-snake (sub1 grow-by))]))
@@ -297,23 +297,16 @@
 ;; Walls
 (define (fresh-walls n)
   (cond [(zero? n) empty]
-        [else 
+        [else
          (cons (fresh-wall) (fresh-walls (sub1 n)))]))
 
 (define (fresh-wall)
   (wall (posn (add1 (random (sub1 SIZE)))
                   (add1 (random (sub1 SIZE))))))
-            
+
 (define (walls+scene walls scene)
   (cond [(empty? walls) scene]
         [else
          (define wall (first walls))
          (define posn (wall-loc wall))
          (img+scene posn WALL-IMG (walls+scene (rest walls) scene))]))
-
-
-
-
-
-
-

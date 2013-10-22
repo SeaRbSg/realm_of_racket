@@ -43,7 +43,7 @@
 (define HEALTH-DAMAGE -2)
 (define AGILITY-DAMAGE -3)
 (define STRENGTH-DAMAGE -4)
-  
+
 ;; Strings
 (define STRENGTH "strength")
 (define AGILITY "agility")
@@ -104,7 +104,7 @@
 (define MESSAGES-SIZE 40)
 
 (define INSTRUCTION-TEXT
-  (above 
+  (above
    (text INSTRUCTIONS-2 (- INSTRUCTION-TEXT-SIZE 2) "blue")
    (text INSTRUCTIONS-1 (- INSTRUCTION-TEXT-SIZE 4) "blue")))
 
@@ -217,7 +217,7 @@
 
 (define (current-target w)
   (list-ref (orc-world-lom w) (orc-world-target w)))
-                        
+
 (define (move-target w delta)
   (define new (+ (orc-world-target w) delta))
   (set-orc-world-target! w (modulo new MONSTER#)))
@@ -374,11 +374,11 @@
 (define (all-monsters-attack-player player lom)
   (define (one-monster-attacks-player monster)
     (cond
-      [(orc? monster) 
+      [(orc? monster)
        (attack-player player-health+ player (random- (orc-club monster)))]
-      [(hydra? monster) 
+      [(hydra? monster)
        (attack-player player-health+ player (random- (monster-health monster)))]
-      [(slime? monster) 
+      [(slime? monster)
        (attack-player player-health+ player -1)
        (attack-player player-agility+ player (random- (slime-sliminess monster)))]
       [(brigand? monster)

@@ -4,7 +4,7 @@
 (define (square n)
   (* n n))
 
-;; 3.3 The Building Blocks of Racket Semantics 
+;; 3.3 The Building Blocks of Racket Semantics
 (zero? 1)
 (zero? (sub1 1))
 
@@ -73,7 +73,7 @@
 (student-id# (third in-class))
 
 (struct student-body (freshman sophomores juniors seniors))
-(define all-students 
+(define all-students
   (student-body (list freshman1 (student 'Mary 0101 'OldHall))
                 (list (student 'Jeff 5678 'OldHall))
                 (list (student 'Bob 4321 'Apartment))

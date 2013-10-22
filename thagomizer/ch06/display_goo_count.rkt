@@ -129,7 +129,7 @@
               ;; consists of the head and at least one segment
               (cons? (rest (snake-segs the-snake))))
          (stop-with w)]
-        [else 
+        [else
          (pit (snake-change-dir the-snake d)
               (pit-goos w)
               goos-eaten)]))
@@ -159,7 +159,7 @@
 (define (img-list+scene posns img scene)
   (cond [(empty? posns) scene]
         [else (img+scene (first posns)
-                         img 
+                         img
                          (img-list+scene (rest posns) img scene))]))
 
 (define (img+scene posn img scene)
@@ -180,8 +180,8 @@
   (or (self-colliding? snake) (wall-colliding? snake)))
 
 (define (render-end w)
-  (overlay (text 
-            (string-append "Game Over. " 
+  (overlay (text
+            (string-append "Game Over. "
                            (number->string (pit-goos-eaten w))
                            " goos eaten!")
             ENDGAME-TEXT-SIZE "black")

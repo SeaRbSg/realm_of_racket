@@ -46,7 +46,7 @@
 (define GOO-IMG (bitmap "goo.gif"))
 (define SUPER-GOO-IMG (bitmap "blue_goo.gif"))
 
-;; 
+;;
 ;; Functions
 ;;
 
@@ -62,7 +62,7 @@
             (to-draw render-pit)
             (stop-when dead? render-end)))
 
-;; General Utility 
+;; General Utility
 (define (posn=? p1 p2)
   (and (= (posn-x p1) (posn-x p2))
        (= (posn-y p1) (posn-y p2))))
@@ -90,7 +90,7 @@
 (define (img-list+scene posns img scene)
   (cond [(empty? posns) scene]
         [else (img+scene (first posns)
-                         img 
+                         img
                          (img-list+scene (rest posns) img scene))]))
 
 (define (img+scene posn img scene)
@@ -118,7 +118,7 @@
                      ;; consists of the head and at least one segment
                      (cons? (rest (snake-segs snake))))
                 (stop-with w)]
-               [else 
+               [else
                 (pit (snake-change-dir snake d)
                      (pit-snake2 w)
                      (pit-goos w)
@@ -130,12 +130,12 @@
                      ;; consists of the head and at least one segment
                      (cons? (rest (snake-segs snake))))
                 (stop-with w)]
-               [else 
+               [else
                 (pit (pit-snake1 w)
                      (snake-change-dir snake d)
                      (pit-goos w)
                      goos-eaten1
-                     goos-eaten2)])]))        
+                     goos-eaten2)])]))
 
 (define (direct-snake w key)
   (define snake-num (determine-snake-num key))
@@ -161,8 +161,8 @@
       2))
 
 (define (render-end w)
-  (overlay (text 
-            (string-append "Game Over. Snake 1 ate " 
+  (overlay (text
+            (string-append "Game Over. Snake 1 ate "
                            (number->string (pit-goos-eaten1 w))
                            " goos! Snake 2 ate "
                            (number->string (pit-goos-eaten2 w))
@@ -179,7 +179,7 @@
   (define goos-eaten2 (pit-goos-eaten2 w))
   (define goo-to-eat1 (can-eat snake1 goos))
   (define goo-to-eat2 (can-eat snake2 goos))
-  (define new-snake1 
+  (define new-snake1
     (if goo-to-eat1
         (begin
           (set! goos (eat goos goo-to-eat1))
@@ -193,7 +193,7 @@
           (set goos-eaten2 (add1 goos-eaten2))
           (grow snake2 (goo-type goo-to-eat2)))
         (slither snake2)))
-  (pit 
+  (pit
    new-snake1
    new-snake2
    (age-goo goos)
@@ -254,12 +254,12 @@
 
 (define (goo-list+scene goos scene)
   (cond [(empty? goos) scene]
-        [else 
+        [else
          (define goo (first goos))
          (define posn (goo-loc goo))
          (define img (img-for-goo goo))
-         (img+scene posn 
-                    img 
+         (img+scene posn
+                    img
                     (goo-list+scene (rest goos) scene))]))
 
 
@@ -281,8 +281,8 @@
         [else (cons (first segs) (all-but-last (rest segs)))]))
 
 (define (grow sn grow-by)
-  (define new-snake (snake 
-                     (snake-dir sn) 
+  (define new-snake (snake
+                     (snake-dir sn)
                      (cons (next-head sn) (snake-segs sn))))
   (cond [(equal? grow-by 1) new-snake]
         [else (grow new-snake (sub1 grow-by))]))
@@ -302,7 +302,7 @@
 (define (dead? w)
   (define snake1 (pit-snake1 w))
   (define snake2 (pit-snake2 w))
-  (or (self-colliding? snake1) 
+  (or (self-colliding? snake1)
       (wall-colliding? snake1)
       (self-colliding? snake2)
       (wall-colliding? snake2)))
@@ -335,8 +335,3 @@
                        [(string=? "left" dir) HEAD2-LEFT-IMG]
                        [(string=? "right" dir) HEAD2-RIGHT-IMG])
                  snake-body-scene)))
-
-
-
-
-
