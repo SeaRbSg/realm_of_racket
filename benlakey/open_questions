@@ -1,4 +1,0 @@
-What's the point of this:
-(sub1 1)
-When you can do this?
-(- 1 1)

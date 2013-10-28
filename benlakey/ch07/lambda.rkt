@@ -38,23 +38,28 @@
         [else (and (predicate (first lst))
                    (all predicate (rest lst)))]))
 
-;; 'my-folder' seemed silly too so I called this 'build-from'. 
-(define (build-from func base lst)
+;; 'my-folder' seemed silly too so I called this 'accumulate'. 
+(define (accumulate func base lst)
   (cond [(empty? lst) base]
-        [else (func (first lst) (build-from func base (rest lst)))]))
+        [else (func (first lst) (accumulate func base (rest lst)))]))
+
+(define (my-build-list start func)
+  (define (builder n)
+    (cond [(= start n) empty]
+          [else (cons (func n) (builder (add1 n)))]))
+  (builder 0))
 
 ;; Tests! I hadn't written any in the chapters prior because I'm bad.
 (module+ test
   (require rackunit)
   
   (define test-predicate (lambda (n) (equal? n 2)))
+  (define test-accumulator (lambda (x y) (+ x y)))
   
   (check-equal? (any test-predicate '(1 3 4)) #f)
   (check-equal? (any test-predicate '(1 2 4)) #t)
-
   (check-equal? (all test-predicate '(2 2 1)) #f)
   (check-equal? (any test-predicate '(2 2 2)) #t)
-  
-  (define test-accumulator (lambda (x y) (+ x y)))
-  
-  (check-equal? (build-from test-accumulator 2 '(1 2 3)) 8))
+  (check-equal? (accumulate test-accumulator 2 '(1 2 3)) 8)
+  (check-equal? (my-build-list 4 (lambda (i) (* i 2))) '(0 2 4 6))
+  (check-equal? (apply + '(1 2 3 4 5)) 15))
