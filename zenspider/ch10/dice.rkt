@@ -270,9 +270,8 @@
   (define even-row? (zero? (modulo (get-row pos) 2)))
   (define right?    (zero? (modulo (add1 pos) BOARD)))
   (define left?     (zero? (modulo pos BOARD)))
-  (if even-row?
-      (even-row pos top? bottom? right? left?)
-      (odd-row  pos top? bottom? right? left?)))
+  (define row-fn    (if even-row? even-row odd-row))
+  (row-fn pos top? bottom? right? left?))
 
 (define (even-row pos top? bottom? right? left?)
   (define prev (- pos BOARD))
