@@ -130,16 +130,9 @@
     (add-territory t (draw-territory t) s)))
 
 (define (draw-focus marked? p-in-focus p t-image)
-  (if (or (and (not marked?) (= p-in-focus p))
-          (and marked? (not (= p-in-focus p))))
+  (if (xor marked? (= p-in-focus p))
       (overlay FOCUS t-image)
       t-image))
-
-;; TODO
-;; (define (draw-focus marked? p-in-focus p t-image)
-;;   (if (xor marked? (= p-in-focus p))
-;;       (overlay FOCUS t-image)
-;;       t-image))
 
 (define (add-territory t image scene)
   (place-image image (territory-x t) (territory-y t) scene))
@@ -281,19 +274,23 @@
       (even-row pos top? bottom? right? left?)
       (odd-row  pos top? bottom? right? left?)))
 
-(define (even-row pos top? bottom? right? left?) ;; REFACTOR prev/next
-  (append (add (or top? right?)    (add1 (- pos BOARD)))
-          (add (or bottom? right?) (add1 (+ pos BOARD)))
-          (add top?                (- pos BOARD))
-          (add bottom?             (+ pos BOARD))
+(define (even-row pos top? bottom? right? left?)
+  (define prev (- pos BOARD))
+  (define next (+ pos BOARD))
+  (append (add (or top? right?)    (add1 prev))
+          (add (or bottom? right?) (add1 next))
+          (add top?                prev)
+          (add bottom?             next)
           (add right?              (add1 pos))
           (add left?               (sub1 pos))))
 
-(define (odd-row pos top? bottom? right? left?) ;; REFACTOR prev/next
-  (append (add top?               (- pos BOARD))
-          (add bottom?            (+ pos BOARD))
-          (add (or top? left?)    (sub1 (- pos BOARD)))
-          (add (or bottom? left?) (sub1 (+ pos BOARD)))
+(define (odd-row pos top? bottom? right? left?)
+  (define prev (- pos BOARD))
+  (define next (+ pos BOARD))
+  (append (add top?               prev)
+          (add bottom?            next)
+          (add (or top? left?)    (sub1 prev))
+          (add (or bottom? left?) (sub1 next))
           (add right?             (add1 pos))
           (add left?              (sub1 pos))))
 
