@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image (except-in 2htdp/universe left right)) 
+(require 2htdp/image (except-in 2htdp/universe left right))
 
 ;; -----------------------------------------------------------------
 ;; Structs
@@ -14,7 +14,10 @@
 
 (define (territory-set-player t p)
   (territory (territory-index t) p (territory-dice t) (territory-x t) (territory-y t)))
-                          
+
+(define (territory-for-index index board)
+  (list-ref board index))
+
 ;; -----------------------------------------------------------------
 ;; Constants
 
@@ -38,21 +41,21 @@
 (define Y-OFFSET (* (image-height (hexagon "black")) 3/4))
 
   ;; Dice and players
-(define COLORS 
-  (list (make-color 255 0 0 100) 
-        (make-color 0 255 0 100) 
+(define COLORS
+  (list (make-color 255 0 0 100)
+        (make-color 0 255 0 100)
         (make-color 0 0 255 100)))
 (define FOCUS (rotate ROTATION (regular-polygon SIDE 6 "outline" "black")))
 (define D1 (bitmap "graphics/dice1.png"))
 (define D2 (bitmap "graphics/dice2.png"))
 (define D3 (bitmap "graphics/dice3.png"))
 (define D4 (bitmap "graphics/dice4.png"))
-(define IMG-LIST (list D1 D2 D3 D4)) 
+(define IMG-LIST (list D1 D2 D3 D4))
 
   ;; Instructions
 (define TEXT-SIZE 25)
 (define TEXT-COLOR "black")
-(define INSTRUCT 
+(define INSTRUCT
   "← and → to move among territories, <enter> to mark, <d> to unmark, and <p> to pass")
 (define PLAYER-1-TURN "It is player 1's turn")
 (define PLAYER-2-TURN "It is player 2's turn")
@@ -156,8 +159,10 @@
                 [dst (neighbors (territory-index src))]
                 #:when (attackable? board player src dst))
       (define from (territory-index src))
-      (define dice (territory-dice src))
-      (define newb (execute board player from dst dice))
+      (define dst-territory (territory-for-index dst board))
+      (define attack-count (territory-dice src))
+      (define defend-count (territory-dice dst-territory))
+      (define newb (execute board player from dst attack-count defend-count))
       (define more (cons (passes newb) (attacks newb)))
       (move (list from dst) (game newb player more))))
   ;; create a passing move and the rest of the game tree
@@ -190,14 +195,29 @@
        (not (= (territory-player dst-t) player))
        (> (territory-dice src) (territory-dice dst-t))))
 
-(define (execute board player src dst dice)
+(define (adjust-for-win win-idx lose-idx winner dice-count board)
   (for/list ([t board])
     (define idx (territory-index t))
-    (cond [(= idx src) (territory-set-dice t 1)]
-          [(= idx dst) 
-           (define s (territory-set-dice t (- dice 1)))
-           (territory-set-player s player)]
+    (cond [(= idx win-idx) (territory-set-dice t 1)]
+          [(= idx lose-idx)
+           (define s (territory-set-dice t (- dice-count 1)))
+           (territory-set-player s winner)]
           [else t])))
+
+(define (execute board attacker src dst attack-count defend-count)
+  (define attack-sum (sum-n-dice attack-count))
+  (define defend-sum (sum-n-dice defend-count))
+  (display "\n")
+  (display attack-sum)
+  (display "\n")
+  (display defend-sum)
+  (display "\n")
+  (display "\n")
+  (define defender (other-player attacker))
+  (cond [(> attack-sum defend-sum)
+         (adjust-for-win src dst attacker attack-count board)]
+        [else
+         (adjust-for-win dst src defender defend-count board)]))
 
 ;; Getting Neighbors
 (define (neighbors pos)
@@ -243,7 +263,7 @@
 
 (define (rotate-until owned-by board rotate)
   (define next-list (rotate board))
-  (if (owned-by (territory-player (first next-list))) 
+  (if (owned-by (territory-player (first next-list)))
       next-list
       (rotate-until owned-by next-list rotate)))
 
@@ -267,7 +287,7 @@
   (define board  (dice-world-board w))
   (define source (dice-world-src w))
   (define focus  (territory-index (first board)))
-  (if source 
+  (if source
       (attacking w source focus)
       (dice-world focus board tree)))
 
@@ -310,9 +330,9 @@
       t-image))
 
 (define (add-territory t image scene)
-  (place-image image 
+  (place-image image
                (territory-x t)
-               (territory-y t) 
+               (territory-y t)
                scene))
 
 (define (draw-territory t)
@@ -352,12 +372,13 @@
 (define (whose-turn player)
   (if (= player 1) PLAYER-2-TURN PLAYER-1-TURN))
 
+(define (other-player player)
+  (if (= player 0) 1 0))
 
+;; Rolling dice
+(define (roll-dice)
+  (+ 1 (random 6)))
 
-
-
-
-
-
-                         
-  
+(define (sum-n-dice n)
+  (cond [(= n 1) (roll-dice)]
+        [else (+ (roll-dice) (sum-n-dice (sub1 n)))]))
