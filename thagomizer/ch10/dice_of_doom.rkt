@@ -207,12 +207,6 @@
 (define (execute board attacker src dst attack-count defend-count)
   (define attack-sum (sum-n-dice attack-count))
   (define defend-sum (sum-n-dice defend-count))
-  (display "\n")
-  (display attack-sum)
-  (display "\n")
-  (display defend-sum)
-  (display "\n")
-  (display "\n")
   (define defender (other-player attacker))
   (cond [(> attack-sum defend-sum)
          (adjust-for-win src dst attacker attack-count board)]
