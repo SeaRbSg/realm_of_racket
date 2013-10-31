@@ -356,5 +356,38 @@
   (roll-the-dice))
 
 (module+ test
+  (require rackunit)
 
-)
+  (define (mapper vals)
+    (map (lambda (v) (apply territory v)) vals))
+
+  (check-equal? (mapper '((0 0 1) (1 1 1) (2 0 3) (3 1 1)))
+                (list (territory 0 0 1)
+                      (territory 1 1 1)
+                      (territory 2 0 3)
+                      (territory 3 1 1)))
+
+  (random-seed 42)
+  (check-equal? (create-world-of-dice-and-doom)
+                (let ((t1 (mapper '((0 0 1) (1 1 1) (2 0 3) (3 1 1))))
+                      (t2 (mapper '((0 0 1) (1 1 1) (2 0 1) (3 0 2))))
+                      (t3 (mapper '((3 0 3) (2 0 2) (1 1 1) (0 0 2))))
+                      (t4 (mapper '((0 0 1) (1 0 1) (2 0 1) (3 0 1))))
+                      (t5 (mapper '((3 0 2) (2 0 2) (1 0 2) (0 0 2)))))
+                  (dice-world
+                   false
+                   t1
+                   (game
+                    t1
+                    0
+                    (list (move
+                           '(2 3)
+                           (game
+                            t2
+                            0
+                            (list (move empty (game t3 1 empty))
+                                  (move '(3 1)
+                                        (game
+                                         t4
+                                         0
+                                         (list (move empty (game t5 1 empty))))))))))))))
