@@ -13,6 +13,7 @@
 
 (define PLAYER# 2)
 (define DICE# 3)
+(define SIZE-DIE 6)
 (define BOARD 2)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
@@ -220,6 +221,9 @@
   (for/list ([n (in-range GRID)])
     (territory n (modulo n PLAYER#) (dice))))
 
+(define (roll rolls sides)
+  (for/sum ([n rolls]) (add1 (random sides))))
+
 (define (dice)
   (add1 (random DICE#)))
 
@@ -239,13 +243,19 @@
 (define (game-tree board player dice)
   (define (attacks board)
     (for*/list ([src board]
-                [dst (neighbors (territory-index src))]
-                #:when (attackable? board player src dst))
-      (define from (territory-index src))
-      (define dice (territory-dice src))
-      (define newb (execute board player from dst dice))
+                [d-idx (neighbors (territory-index src))]
+                #:when (attackable? board player src d-idx)) ; FIX dumb mix
+      (define dst     (list-ref board d-idx))
+      (define s-idx   (territory-index src))
+      (define s-dice  (territory-dice src))
+      (define d-dice  (territory-dice dst))
+      (define s-score (roll s-dice SIZE-DIE))
+      (define d-score (roll d-dice SIZE-DIE))
+      (define newb (if (> s-score d-score)
+                       (execute board player s-idx d-idx 1 (sub1 s-dice))
+                       (execute board player s-idx d-idx 1 d-dice)))
       (define more (cons (passes newb) (attacks newb)))
-      (move (list from dst) (game newb player more))))
+      (move (list s-idx d-idx) (game newb player more))))
   (define (passes board)
     (define-values (new-dice newb) (distribute board player dice))
     (move empty (game-tree newb (switch player) new-dice)))
@@ -306,12 +316,12 @@
        (not (= (territory-player dst-t) player))
        (> (territory-dice src) (territory-dice dst-t))))
 
-(define (execute board player src dst dice)
+(define (execute board player src dst sdice ddice)
   (for/list ([t board])
     (define idx (territory-index t))
-    (cond [(= idx src) (territory-set-dice t 1)]
+    (cond [(= idx src) (territory-set-dice t sdice)]
           [(= idx dst)
-           (define s (territory-set-dice t (- dice 1)))
+           (define s (territory-set-dice t ddice))
            (territory-set-player s player)]
           [else t])))
 
