@@ -240,26 +240,27 @@
 
 ;;; The Game Tree
 
-(define (game-tree board player dice)
+(define (game-tree board s-player dice)
   (define (attacks board)
     (for*/list ([src board]
                 [d-idx (neighbors (territory-index src))]
-                #:when (attackable? board player src d-idx)) ; FIX dumb mix
+                #:when (attackable? board s-player src d-idx)) ; FIX dumb mix
       (define dst     (list-ref board d-idx))
       (define s-idx   (territory-index src))
       (define s-dice  (territory-dice src))
       (define d-dice  (territory-dice dst))
+      (define d-player (territory-player dst))
       (define s-score (roll s-dice SIZE-DIE))
       (define d-score (roll d-dice SIZE-DIE))
       (define newb (if (> s-score d-score)
-                       (execute board player s-idx d-idx 1 (sub1 s-dice))
-                       (execute board player s-idx d-idx 1 d-dice)))
+                       (execute board s-player s-idx d-idx 1 (sub1 s-dice))
+                       (execute board d-player s-idx d-idx 1 d-dice)))
       (define more (cons (passes newb) (attacks newb)))
-      (move (list s-idx d-idx) (game newb player more))))
+      (move (list s-idx d-idx) (game newb s-player more))))
   (define (passes board)
-    (define-values (new-dice newb) (distribute board player dice))
-    (move empty (game-tree newb (switch player) new-dice)))
-  (game board player (attacks board)))
+    (define-values (new-dice newb) (distribute board s-player dice))
+    (move empty (game-tree newb (switch s-player) new-dice)))
+  (game board s-player (attacks board)))
 
 (define (switch player)
   (modulo (add1 player) PLAYER#))
