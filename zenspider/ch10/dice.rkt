@@ -111,6 +111,7 @@
   (case (string->symbol k)
     [(left)  (refocus-board w left)]
     [(right) (refocus-board w right)]
+    [(escape) (stop-with w)]
     [(p)     (pass w)]
     [(m)     (mark w)]
     [(d)     (unmark w)]
