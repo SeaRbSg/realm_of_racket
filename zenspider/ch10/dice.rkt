@@ -5,7 +5,7 @@
 ;;; 10.5: Structs
 
 (struct dice-world (src board gt)          #:transparent)
-(struct territory  (index player dice x y) #:transparent)
+(struct territory  (index player dice)     #:transparent)
 (struct game       (board player moves)    #:transparent)
 (struct move       (action gt)             #:transparent)
 
@@ -135,7 +135,10 @@
       t-image))
 
 (define (add-territory t image scene)
-  (place-image image (territory-x t) (territory-y t) scene))
+  (place-image image
+               (get-x (territory-index t))
+               (get-y (territory-index t))
+               scene))
 
 (define (draw-territory t)
   (define color (color-chooser (territory-player t)))
@@ -212,7 +215,7 @@
 
 (define (territory-build)
   (for/list ([n (in-range GRID)])
-    (territory n (modulo n PLAYER#) (dice) (get-x n) (get-y n))))
+    (territory n (modulo n PLAYER#) (dice))))
 
 (define (dice)
   (add1 (random DICE#)))
@@ -339,16 +342,12 @@
 (define (territory-set-dice t d)
   (territory (territory-index t)
              (territory-player t)
-             d
-             (territory-x t)
-             (territory-y t)))
+             d))
 
 (define (territory-set-player t p)
   (territory (territory-index t)
              p
-             (territory-dice t)
-             (territory-x t)
-             (territory-y t)))
+             (territory-dice t)))
 
 ;;; Main
 
