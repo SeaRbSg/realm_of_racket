@@ -21,6 +21,7 @@
 (define AI 1)
 
 ;; graphical constants: territories
+
 ;; (define DICE-OFFSET 6)
 (define SIDE 75)
 (define OFFSET0 (* 2 SIDE))
@@ -32,6 +33,7 @@
 (define Y-OFFSET (* (image-height (hexagon "black")) 3/4))
 
 ;; graphical constants
+
 (define COLORS
   (list (make-color 255 0 0 100)
         (make-color 0 255 0 100)
@@ -118,14 +120,14 @@
     [else    w]))
 
 (define (add-board-to-scene w s)
-  (define board (dice-world-board w))
-  (define player (game-player (dice-world-gt w)))
-  (define focus? (dice-world-src w))
-  (define trtry1 (first board))
+  (define board   (dice-world-board w))
+  (define player  (game-player (dice-world-gt w)))
+  (define focus?  (dice-world-src w))
+  (define trtry1  (first board))
   (define p-focus (territory-player trtry1))
   (define t-image (draw-territory trtry1))
-  (define image (draw-focus focus? p-focus player t-image))
-  (define base-s (add-territory trtry1 image s))
+  (define image   (draw-focus focus? p-focus player t-image))
+  (define base-s  (add-territory trtry1 image s))
 
   (for/fold ([s base-s]) ([t (rest board)])
     (add-territory t (draw-territory t) s)))
