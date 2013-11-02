@@ -310,12 +310,12 @@
           (add right?             (add1 pos))
           (add left?              (sub1 pos))))
 
-(define (attackable? board player src dst)
-  (define dst-t (findf (lambda (t) (= (territory-index t) dst)) board))
+(define (attackable? board player s-ter d-idx)
+  (define dst-t (findf (lambda (t) (= (territory-index t) d-idx)) board))
   (and dst-t
-       (= (territory-player src) player)
+       (= (territory-player s-ter) player)
        (not (= (territory-player dst-t) player))
-       (> (territory-dice src) (territory-dice dst-t))))
+       (> (territory-dice s-ter) (territory-dice dst-t))))
 
 (define (execute board player src dst sdice ddice)
   (for/list ([t board])
