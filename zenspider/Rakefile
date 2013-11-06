@@ -3,7 +3,7 @@
 task :default => :latest
 
 def racket path
-  sh "racket", path
+  sh "time", "racket", path
 end
 
 task :latest do
