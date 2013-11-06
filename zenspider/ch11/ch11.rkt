@@ -20,7 +20,7 @@
              #:when (zero? (remainder i 1000)))
     (thunk)))
 
-(define (triangle-number n)
+(define (triangle-number n)             ; 1 + 2 + ... + n
   (/ (+ (* n n) n) 2))
 
 (check-equal? (compute-every-1000th long-big-list)
