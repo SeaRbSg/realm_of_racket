@@ -40,11 +40,11 @@
         (make-color 0 255 0 100)
         (make-color 0 0 255 100)))
 (define FOCUS (rotate ROTATION (regular-polygon SIDE 6 "outline" "black")))
-(define D1 (bitmap "../ch10/dice1.png"))
-(define D2 (bitmap "../ch10/dice2.png"))
-(define D3 (bitmap "../ch10/dice3.png"))
-(define D4 (bitmap "../ch10/dice4.png"))
-(define IMG-LIST (list D1 D2 D3 D4))
+(define IMG-LIST (list
+                  (bitmap "../ch10/dice1.png")
+                  (bitmap "../ch10/dice2.png")
+                  (bitmap "../ch10/dice3.png")
+                  (bitmap "../ch10/dice4.png")))
 
 (define TEXT-SIZE 25)
 (define TEXT-COLOR "black")
@@ -65,8 +65,12 @@
   (empty-scene WIDTH HEIGHT))
 (define (ISCENE)
   (define mt (PLAIN))
-  (when (or (> (image-width mt) 1280) (> (image-height mt) 800))
-        (error 'scene "it is impossible to draw a ~s x ~s game scene for a 1280 x 800 laptop screen" (image-width mt) (image-height mt)))
+  (when (or (> (image-width mt) 1280)
+            (> (image-height mt) 800))
+        (error 'scene
+               "it is impossible to draw a ~s x ~s game scene for a 1280 x 800 laptop screen"
+               (image-width mt)
+               (image-height mt)))
   (place-image INSTRUCTIONS (* .5 WIDTH) (* .9 HEIGHT) mt))
 
 ;;; 10.6: GUI: Roll the Dice
