@@ -257,10 +257,11 @@
       (define s-score  (roll s-dice SIZE-DIE))
       (define d-score  (roll d-dice SIZE-DIE))
       (define newb     (if (> s-score d-score)
-                           (execute board s-player s-idx d-idx 1 (sub1 s-dice))
-                           (execute board d-player s-idx d-idx 1 d-dice)))
-      (define more     (cons (passes newb) (attacks newb)))
-      (move (list s-idx d-idx) (game newb s-player more))))
+                           (attack board s-player s-idx d-idx 1 (sub1 s-dice))
+                           (attack board d-player s-idx d-idx 1 d-dice)))
+      (define gt-attack
+        (game newb s-player (cons (passes newb) (attacks newb))))
+      (move (list s-idx d-idx) gt-attack)))
   (define (passes board)
     (define-values (new-dice newb) (distribute board s-player dice))
     (move empty (game-tree newb (switch s-player) new-dice)))
@@ -321,7 +322,7 @@
        (not (= (territory-player dst-t) player))
        (> (territory-dice s-ter) (territory-dice dst-t))))
 
-(define (execute board player src dst sdice ddice)
+(define (attack board player src dst sdice ddice)
   (for/list ([t board])
     (define idx (territory-index t))
     (cond [(= idx src) (territory-set-dice t sdice)]
