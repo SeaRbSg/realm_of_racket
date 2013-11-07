@@ -6,15 +6,25 @@
 
 (struct dice-world (src board gt)          #:transparent)
 (struct territory  (index player dice)     #:transparent)
-(struct game       (board player moves)    #:transparent)
 (struct move       (action gt)             #:transparent)
+
+;; This is fucking _smart_. I like it:
+
+(define-values (game game? game-board game-player game-moves)
+  (let ()
+    (struct game (board player delayed-moves) #:transparent)
+    (values game
+            game?
+            game-board
+            game-player
+            (lambda (g) (force (game-delayed-moves g))))))
 
 ;;; Constants
 
 (define PLAYER# 2)
 (define DICE# 3)
 (define SIZE-DIE 6)
-(define BOARD 2)
+(define BOARD 4)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
