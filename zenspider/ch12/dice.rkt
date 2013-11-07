@@ -260,12 +260,12 @@
                            (attack board s-player s-idx d-idx 1 (sub1 s-dice))
                            (attack board d-player s-idx d-idx 1 d-dice)))
       (define gt-attack
-        (game newb s-player (cons (passes newb) (attacks newb))))
+        (game newb s-player (delay (cons (passes newb) (attacks newb)))))
       (move (list s-idx d-idx) gt-attack)))
   (define (passes board)
     (define-values (new-dice newb) (distribute board s-player dice))
     (move empty (game-tree newb (switch s-player) new-dice)))
-  (game board s-player (attacks board)))
+  (game board s-player (delay (attacks board))))
 
 (define (switch player)
   (modulo (add1 player) PLAYER#))
