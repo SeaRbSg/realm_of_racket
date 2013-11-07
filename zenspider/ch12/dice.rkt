@@ -24,11 +24,11 @@
 (define PLAYER# 2)
 (define DICE# 3)
 (define SIZE-DIE 6)
-(define BOARD 4)
+(define BOARD 5)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
-;; (define AI-DEPTH 4)         ; The depth at which to limit the gametree
+(define AI-DEPTH 4)
 (define AI 1)
 
 ;; graphical constants: territories
@@ -201,8 +201,12 @@
 
 (define (pass w)
   (define m (find-move (game-moves (dice-world-gt w)) empty))
-  (cond [(not m) w]
-        [else (dice-world #f (game-board m) m)]))
+  (cond [(false? m) w]
+        [(or (no-more-moves? m) (not (= (game-player m) AI)))
+         (dice-world false (game-board m) m)]
+        [else
+         (define ai (the-ai-plays m))
+         (dice-world false (game-board ai) ai)]))
 
 (define (find-move moves action)
   (define m (findf (lambda (m) (equal? (move-action m) action)) moves))
@@ -355,6 +359,31 @@
 (define (sum-territory board player)
   (for/fold ([result 0]) ([t board])
     (if (= (territory-player t) player) (+ result 1) result)))
+
+;;; 12.3: AI
+
+(define (rate-moves tree depth)
+  (for/list ([move (game-moves tree)])
+    (list move (rate-positions (move-gt move) (- depth 1)))))
+
+(define (rate-positions tree depth)
+  (cond [(or (zero? depth) (no-more-moves? tree))
+         (define-values (best w) (winners (game-board tree)))
+         (if (member AI w)
+             (/ 1 (length w))
+             0)]
+        [else
+         (define ratings (rate-moves tree depth))
+         (apply (if (= (game-player tree) AI) max min)
+                (map second ratings))]))
+
+(define (the-ai-plays tree)
+  (define ratings  (rate-moves tree AI-DEPTH))
+  (define the-move (first (argmax second ratings)))
+  (define new-tree (move-gt the-move))
+  (if (= (game-player new-tree) AI)
+      (the-ai-plays new-tree)
+      new-tree))
 
 ;;; Misc
 
