@@ -196,8 +196,13 @@
 (define (pass w)
   (define m (find-move (game-moves (dice-world-gt w))
                        '()))
-  (cond [(not m) w]
-        [else (dice-world #f (game-board m) m)]))
+  (cond [(false? m) w]
+        [(or (no-more-moves? m) (not (= (game-player m)
+                                        AI)))
+         (dice-world #f (game-board m) m)]
+        [else
+          (define ai (the-ai-plays m))
+          (dice-world #f (game-board ai) ai)]))
 
 (define (find-move moves action)
   (define m
@@ -342,6 +347,30 @@
   (for/fold ([result 0]) ([t board])
             (if (= (territory-player t) player) (+ result 1)
               result)))
+
+(define (rate-moves tree depth)
+  (for/list ([move (game-moves tree)])
+            (list move (rate-position (move-gt move) (- depth
+                                                       1)))))
+
+;; Generates a numeric point rating for a given branch
+(define (rate-position tree depth)
+  (cond [(or (= depth 0) (no-more-moves? tree))
+         (define-values (best w) (winners (game-board
+                                            tree)))
+         (if (member AI w) (/ 1 (length w)) 0)]
+        [else
+          (define ratings (rate-moves tree depth))
+          (apply (if (= (game-player tree) AI) max min)
+                 (map second ratings))]))
+
+(define (the-ai-plays tree)
+  (define ratings (rate-moves tree AI-DEPTH))
+  (define the-move (first (argmax second ratings)))
+  (define new-tree (move-gt the-move))
+  (if (= (game-player new-tree) AI)
+    (the-ai-plays new-tree)
+    new-tree))
 
 (define (roll-the-dice)
   (big-bang (create-world-of-dice-and-doom)
