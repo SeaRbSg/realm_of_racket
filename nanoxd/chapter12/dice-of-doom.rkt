@@ -5,14 +5,22 @@
 ; Structures
 (struct dice-world (src board gt) #:transparent)
 (struct territory (index player dice x y) #:transparent)
-(struct game (board player moves) #:transparent)
 (struct move (action gt) #:transparent)
+
+(define-values (game game? game-board game-player game-moves)
+  (let ()
+    (struct game (board player delayed-moves))
+    (values game
+            game?
+            game-board
+            game-player
+            (lambda (g) (force (game-delayed-moves g))))))
 
 ;; Constants
 ; initalization constants
 (define PLAYER# 2)
 (define DICE# 3)
-(define BOARD 2)
+(define BOARD 4)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
