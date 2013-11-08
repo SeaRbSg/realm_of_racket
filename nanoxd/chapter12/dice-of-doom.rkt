@@ -249,7 +249,7 @@
                 #:when (attackable? board player src dst))
                (define from (territory-index src))
                (define dice (territory-dice src))
-               (define newb (execute board player from dst dice))
+               (define newb (attack board player from dst dice))
                (define gt-attack
                  (game newb player (delay (cons (passes newb)
                                            (attacks newb)))))
@@ -314,7 +314,7 @@
        (not (= (territory-player dst-t) player))
        (> (territory-dice src) (territory-dice dst-t))))
 
-(define (execute board player src dst dice)
+(define (attack board player src dst dice)
   (for/list ([t board])
             (define idx (territory-index t))
             (cond [(= idx src) (territory-set-dice t 1)]
