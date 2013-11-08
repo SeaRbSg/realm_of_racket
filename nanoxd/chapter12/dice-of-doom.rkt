@@ -242,12 +242,15 @@
                (define from (territory-index src))
                (define dice (territory-dice src))
                (define newb (execute board player from dst dice))
-               (define more (cons (passes newb) (attacks newb)))
-               (move (list from dst) (game newb player more))))
+               (define gt-attack
+                 (game newb player (delay (cons (passes newb)
+                                           (attacks newb)))))
+               ; (define more (cons (passes newb) (attacks newb)))
+               (move (list from dst) gt-attack)))
   (define (passes board)
     (define-values (new-dice newb) (distribute board player dice))
     (move '() (game-tree newb (switch player) new-dice)))
-  (game board player (attacks board)))
+  (game board player (delay (attacks board))))
 
 (define (switch player)
   (modulo (add1 player) PLAYER#))
