@@ -24,7 +24,7 @@
 (define PLAYER# 2)
 (define DICE# 3)
 (define SIZE-DIE 6)
-(define BOARD 5)
+(define BOARD 4)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
@@ -33,7 +33,6 @@
 
 ;; graphical constants: territories
 
-;; (define DICE-OFFSET 6)
 (define SIDE 75)
 (define OFFSET0 (* 2 SIDE))
 (define ROTATION 30)
@@ -228,7 +227,6 @@
   (if next (dice-world false (game-board next) next) w))
 
 (define (unmark w)
-  (define source (dice-world-src w))
   (define board  (dice-world-board w))
   (define tree   (dice-world-gt w))
   (dice-world false board tree))
@@ -390,7 +388,6 @@
 (define (no-more-moves? g)
   (empty? (game-moves g)))
 
-;; TODO: THIS REQUIRES A DIFFERENT DEFINITION FOR PLAIN CHAPTER 10.
 (define (whose-turn player)
   (if (= player AI) AI-TURN YOUR-TURN))
 
