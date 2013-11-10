@@ -87,7 +87,7 @@
 (define (roll-the-dice)
   (big-bang (create-world-of-dice-and-doom)
             (on-key    interact-with-board)
-            (on-draw   draw-dice-world)
+            (to-draw   draw-dice-world)
             (stop-when no-more-moves-in-world? draw-end-of-dice-world)))
 
 (define (create-world-of-dice-and-doom)
