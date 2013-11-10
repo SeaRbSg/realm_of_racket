@@ -125,8 +125,8 @@
 
 (define (interact-with-board w k)
   (case (string->symbol k)
-    [(left)  (refocus-board w left)]
-    [(right) (refocus-board w right)]
+    [(left)  (refocus-board w right)]
+    [(right) (refocus-board w left)]
     [(escape) (stop-with w)]
     [(p)     (pass w)]
     [(m)     (mark w)]
