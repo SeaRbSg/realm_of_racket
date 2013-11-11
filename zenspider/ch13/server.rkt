@@ -1,7 +1,11 @@
 #lang racket
 
-(struct interval (small big))
-(define u0 (interval LOWER UPPER))
+(require 2htdp/image 2htdp/universe "shared.rkt")
+
+(provide launch-guess-server)
+
+(struct interval (small big guesses))
+(define u0 (interval LOWER UPPER 0))
 
 (define (launch-guess-server)
   (universe false
@@ -10,11 +14,11 @@
 
 (define (connect u client)
   (if (false? u)
-      (make-bundle u0 (list (make-mail client (guess o0))) empty)
+      (make-bundle u0 (list (make-mail client (guess u0))) empty)
       (make-bundle u empty (list client))))
 
 (define (handle-msg u client msg)
-  (define (w (next-interval u msg)))
+  (define w (next-interval u msg))
   (make-bundle w (list (make-mail client (guess w))) empty))
 
 (define (next-interval u msg)
