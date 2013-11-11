@@ -5,7 +5,7 @@
 ;;Constants
 (define PLAYER# 2)
 (define DICE# 3)
-(define BOARD 2)
+(define BOARD 4)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
@@ -59,8 +59,17 @@
 ;;Main Structures
 (struct dice-world (src board gt) #:transparent)
 (struct territory (index player dice x y) #:transparent)
-(struct game (board player moves) #:transparent)
 (struct move (action gt) #:transparent)
+
+;;Define lazy evaluation for moves
+(define-values (game game? game-board game-player game-moves)
+  (let ()
+    (struct game (board player delayed-moves))
+    (values game
+            game?
+            game-board
+            game-player
+            (lambda (g) (force (game-delayed-moves g))))))
 
 (define b0 (list (territory 0 0 2 'x 'y) (territory 1 1 1 'a 'b)))
 (define b1 (list (territory 0 0 1 'x 'y) (territory 1 0 1 'a 'b)))
@@ -237,12 +246,12 @@
       (define from (territory-index src))
       (define dice (territory-dice src))
       (define newb (execute board player from dst dice))
-      (define more (cons (passes newb) (attacks newb)))
+      (define more (delay (cons (passes newb) (attacks newb))))
       (move (list from dst) (game newb player more))))
   (define (passes board)
     (define-values (new-dice newb) (distribute board player dice))
     (move '() (game-tree newb (switch player) new-dice)))
-  (game board player (attacks board)))
+  (game board player (delay (attacks board))))
 
 (define (switch player)
   (modulo (add1 player) PLAYER#))
