@@ -31,7 +31,7 @@
 
 (define PLAYER# 2)
 (define DICE# 3)
-(define BOARD 5)
+(define BOARD 4)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 50)
@@ -110,9 +110,9 @@
 
 (define (interact-with-board w k)
   (cond [(key=? "left" k)
-         (refocus-board w left)]
-        [(key=? "right" k)
          (refocus-board w right)]
+        [(key=? "right" k)
+         (refocus-board w left)]
         [(key=? "p" k)
          (pass w)]
         [(key=? "\r" k)
@@ -417,5 +417,6 @@
   (define the-move (first (argmax second ratings)))
   (define new-tree (move-gt the-move))
   (if (= (game-player new-tree) AI)
-      (the-ai-plays new-tree)
+      (begin
+        (the-ai-plays new-tree))
       new-tree))
