@@ -2,6 +2,8 @@
 
 (require 2htdp/image 2htdp/universe "shared.rkt")
 
+(provide launch-guess-client)
+
 (define TEXT-SIZE 11)
 (define HELP-TEXT
   (text "↑ for larger numbers, ↓ for smaller ones"

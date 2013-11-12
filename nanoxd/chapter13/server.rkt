@@ -1,5 +1,9 @@
 #lang racket
 
+(require 2htdp/image 2htdp/universe "shared.rkt")
+
+(provide launch-guess-server)
+
 ;; GmNState is one of:
 ;; -(interval nat nat)
 ;; -#f
