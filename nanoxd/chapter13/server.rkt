@@ -8,8 +8,8 @@
 ;; -(interval nat nat)
 ;; -#f
 
-(struct interval (small big))
-(define u0 (interval LOWER UPPER))
+(struct interval (small big guesses))
+(define u0 (interval LOWER UPPER 0))
 
 (define (launch-guess-server)
   (universe #f

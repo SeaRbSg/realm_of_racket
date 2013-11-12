@@ -37,7 +37,7 @@
             (to-draw draw-guess)
             (on-key handle-keys)
             (name n)
-            (register n)
+            (register LOCALHOST)
             (on-receive handle-msg)))
 
 (define (handle-msg c msg)
