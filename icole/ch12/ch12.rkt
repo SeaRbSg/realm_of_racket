@@ -10,6 +10,7 @@
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
 (define AI 1)
+(define AI-DEPTH 4)
 
 (define DICE-OFFSET 6)
 (define SIDE 75)
@@ -191,8 +192,12 @@
 
 (define (pass w)
   (define m (find-move (game-moves (dice-world-gt w)) '()))
-  (cond [(not m) w]
-        [else (dice-world #f (game-board m) m)]))
+  (cond [(false? m) w]
+        [(or (no-more-moves? m) (not (= (game-player m) AI)))
+             (dice-world #f (game-board m) m)]
+        [else
+         (define ai (the-ai-plays m))
+         (dice-world #f (game-board ai) ai)]))
 
 (define (find-move moves action)
   (define m
@@ -237,7 +242,28 @@
 
 (define (no-more-moves? g)
   (empty? (game-moves g)))
-  
+
+(define (rate-position tree depth)
+  (cond [(or (= depth 0) (no-more-moves? tree))
+         (define-values (best w) (winners (game-board tree)))
+         (if (member AI w) (/ 1 (length w)) 0)]
+        [else
+         (define ratings (rate-moves tree depth))
+         (apply (if (= (game-player tree) AI) max min)
+                (map second ratings))]))
+
+(define (rate-moves tree depth)
+  (for/list ([move (game-moves tree)])
+    (list move (rate-position (move-gt move) (- depth 1)))))
+
+(define (the-ai-plays tree)
+  (define ratings (rate-moves tree AI-DEPTH))
+  (define the-move (first (argmax second ratings)))
+  (define new-tree (move-gt the-move))
+  (if (= (game-player new-tree) AI)
+      (the-ai-plays new-tree)
+      new-tree))
+
 (define (game-tree board player dice)
   (define (attacks board)
     (for*/list ([src board]
