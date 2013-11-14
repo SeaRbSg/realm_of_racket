@@ -76,9 +76,9 @@
   (add-progress-bar (render-id+image app)
                     (app-countdown app)))
 
-(define (render-id+image app)
-  (define id (app-id app))
-  (define base-image (app-img app))
+(define (render-id+image appetizer)
+  (define id (app-id appetizer))
+  (define base-image (app-img appetizer))
   (overlay
    (cond
      [(boolean? id) base-image]
@@ -96,11 +96,11 @@
   (for/fold ([scn base-scene]) ([f foods])
     (place-image FOOD-IMG (body-x f) (body-y f) scn)))
 
-(define (add-players id lof base-scene)
-  (for/fold ([scn base-scene]) ([feaster lof])
+(define (add-players id feasters base-scene)
+  (for/fold ([scene base-scene]) ([feaster feasters])
     (place-image (render-avatar id feaster)
                  (feaster-x feaster) (feaster-y feaster)
-                 scn)))
+                 scene)))
 
 (define (render-avatar id player)
   (define size (body-size (player-body player)))
@@ -162,9 +162,9 @@
 ;;
 ;; SERVER MESSAGE HANDLING
 ;;
-(define (handle-server-messages meal msg)
-  (cond [(app? meal) (handle-appetizer-message meal msg)]
-        [(entree? meal) (handle-entree-message meal msg)]))
+(define (handle-server-messages meal message)
+  (cond [(app? meal) (handle-appetizer-message meal message)]
+        [(entree? meal) (handle-entree-message meal message)]))
 
 (define (handle-appetizer-message s msg)
   (cond [(id? msg) (app msg (app-img s) (app-countdown s))]
