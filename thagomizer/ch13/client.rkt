@@ -12,7 +12,8 @@
             (on-key handle-keys)
             (name n)
             (register LOCALHOST)
-            (on-receive handle-msg)))
+            (on-receive handle-msg)
+            (state true)))
 
 (define (handle-msg c msg)
   (number->string msg))

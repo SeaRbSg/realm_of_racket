@@ -4,16 +4,17 @@
 
 (provide launch-guess-server)
 
+(struct interval (small big) #:transparent)
 ;; GmNState is one of:
 ;; -(interval nat nat)
 ;; -#f
-(struct interval (small big))
 (define u0 (interval LOWER UPPER))
 
 (define (launch-guess-server)
   (universe #f
             (on-new connect)
-            (on-msg handle-msg)))
+            (on-msg handle-msg)
+            (state true)))
 
 (define (connect u client)
   (if (false? u)
