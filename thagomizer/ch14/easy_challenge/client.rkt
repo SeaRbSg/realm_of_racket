@@ -219,8 +219,8 @@
 ;; USER EVENT HANDLING
 ;;
 
-(define (set-waypoint meal x y me)
-  (if (and (entree? meal) (mouse=? me "button-down"))
+(define (set-waypoint meal x y mouse-event)
+  (if (and (entree? meal) (mouse=? mouse-event "button-down"))
       (make-package meal (list GOTO x y)) meal))
 
 ;;
