@@ -6,7 +6,7 @@
          2htdp/universe)
 
 (struct join (clients [time #:mutable]) #:transparent)
-(struct play (players food spectators) #:mutable #:transparent)
+(struct play (players food spectators generate) #:mutable #:transparent)
 
 (define-values (ip ip? ip-id ip-iw ip-body ip-waypoints ip-player)
   (let ()
@@ -27,11 +27,13 @@
 (define (play-add-spectator pu new-s)
   (define players (play-players pu))
   (define spectators (play-spectators pu))
-  (play players (play-food pu) (cons new-s spectators)))
+  (define generate (play-generate pu))
+  (play players (play-food pu) (cons new-s spectators) generate))
 (define (play-remove p iw)
   (define players (play-players p))
   (define spectators (play-spectators p))
-  (play (rip iw players) (play-food p) (rip iw spectators)))
+  (define generate (play-generate p))
+  (play (rip iw players) (play-food p) (rip iw spectators) generate))
 (define JOIN0 (join empty START-TIME))
 (define (refresh players)
   (for/list ([p players])
@@ -150,7 +152,7 @@
 (define (start-game j)
   (define clients (join-clients j))
   (define cupcakes (bake-cupcakes (length clients)))
-  (broadcast-universe (play clients cupcakes empty)))
+  (broadcast-universe (play clients cupcakes empty false)))
 
 (define (bake-cupcakes player#)
   (for/list ([i (in-range (* player# FOOD*PLAYERS))])
@@ -168,8 +170,8 @@
 
 (define (move-and-eat pu)
   (define nplayer (move-player* (play-players pu)))
-  (define nfood (feed-em-all nplayer (play-food pu)))
-  (progress nplayer nfood (play-spectators pu)))
+  (define nfood (feed-em-all pu nplayer (play-food pu)))
+  (progress nplayer nfood (play-spectators pu) (play-generate pu)))
 
 (define (move-player* players)
   (for/list ([p players])
@@ -193,24 +195,31 @@
          (set-body-loc! body (+ bloc velocity))
          waypoints]))
 
-(define (feed-em-all players foods)
+(define (feed-em-all pu players foods)
   (for/fold ([foods foods]) ([p players])
-    (eat-all-the-things p foods)))
+    (eat-all-the-things pu p foods)))
 
-(define (eat-all-the-things player foods)
+(define (generate-cupcake? pu)
+  (let ((generate (play-generate pu)))
+    (set-play-generate! pu (not generate))
+    generate))
+
+(define (eat-all-the-things pu player foods)
   (define b (ip-body player))
   (for/fold ([foods empty]) ([f foods])
     (cond [(body-collide? f b)
            (set-body-size! b (+ PLAYER-FATTEN-DELTA (body-size b)))
-           foods]
+           (if (generate-cupcake? pu)
+               (cons (create-a-body CUPCAKE) foods)
+               foods)]
           [else (cons f foods)])))
 
 (define (body-collide? s1 s2)
   (<= (magnitude (- (body-loc s1) (body-loc s2)))
       (+ (body-size s1) (body-size s2))))
 
-(define (progress pls foods spectators)
-  (define p (play pls foods spectators))
+(define (progress pls foods spectators gen)
+  (define p (play pls foods spectators gen))
   (cond [(empty? foods) (end-game-broadcast p)]
         [else (broadcast-universe p)]))
 
