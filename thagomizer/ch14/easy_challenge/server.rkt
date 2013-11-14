@@ -197,8 +197,9 @@
     (cond
       [(body-collide? f b)
        (set-body-size! b (+ PLAYER-FATTEN-DELTA (body-size b)))
-       foods]
+       (cons (create-a-body CUPCAKE) foods)]
       [else (cons f foods)])))
+
 
 (define (body-collide? s1 s2)
   (<= (magnitude (- (body-loc s1) (body-loc s2)))
