@@ -8,7 +8,6 @@
 (struct app (id img countdown) #:transparent)
 (struct entree (id players food) #:transparent)
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; shit not given in the book
 
 (define FOOD-IMG (bitmap "cupcake.gif"))
@@ -93,8 +92,6 @@
   (real-part (body-loc body)))
 (define (body-y body)
   (imag-part (body-loc body)))
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; 14.6: Main, Take Client
 

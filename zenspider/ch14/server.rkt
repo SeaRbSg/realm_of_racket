@@ -15,14 +15,12 @@
       (ip id iw body waypoints (player id body waypoints)))
     (values create ip? ip-id ip-iw ip-body ip-waypoints ip-player)))
 
-;; Junk they don't give me in the book
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Shit they don't give me in the book
 
 (define TICK .1)
 (define PLAYER-LIMIT 2)
 (define START-TIME 0)
-(define WAIT-TIME 250)
+(define WAIT-TIME 25)
 (define FOOD*PLAYERS 5)
 (define WEIGHT-FACTOR 2.1)
 (define BASE-SPEED (/ (expt PLAYER-SIZE 2) WEIGHT-FACTOR))
@@ -70,8 +68,6 @@
   (body size (make-rectangular x y)))
 (define (get-iws p)
   (map ip-iw (append (play-players p) (play-spectators p))))
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; 14.7: Main, Take Server
 
