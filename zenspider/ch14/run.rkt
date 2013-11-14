@@ -8,3 +8,5 @@
   (launch-many-worlds (bon-appetit)
                       (lets-eat "Ryan" LOCALHOST)
                       (lets-eat "Aja"  LOCALHOST)))
+(module+ main
+  (serve-dinner))
