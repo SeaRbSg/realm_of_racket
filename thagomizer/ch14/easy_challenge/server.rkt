@@ -24,7 +24,7 @@
 (define TICK .1)
 (define PLAYER-LIMIT 2)
 (define START-TIME 0)
-(define WAIT-TIME 250)
+(define WAIT-TIME 50)
 
 (define FOOD*PLAYERS 5)
 
