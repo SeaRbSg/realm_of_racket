@@ -5,6 +5,22 @@
 (require "shared.rkt" 2htdp/universe 2htdp/image)
 
 ;;
+;; STRUCTS
+;;
+
+;; Appetizer state (really?)
+; id - the player's server assigned id (false while waiting)
+; img - the base image that displays messages to the screen
+; countdown - time left until the game starts
+(struct app (id img countdown))
+
+;; Entree state (*sigh*)
+; id - the player's server assigned id (false while waiting)
+; players - list of current players
+; food - list of available cupcakes
+(struct entree (id players food))
+
+;;
 ;; IMAGE CONSTANTS
 ;;
 (define FOOD-IMG (bitmap "graphics/cupcake.gif"))
@@ -39,24 +55,6 @@
 (define ZERO% 0)
 (define LOADING (text LOADING... 20 "black"))
 (define INITIAL (app #f LOADING ZERO%))
-
-;;
-;; STRUCTS
-;;
-
-;; Appetizer state (really?)
-; id - the player's server assigned id (false while waiting)
-; img - the base image that displays messages to the screen
-; countdown - time left until the game starts
-(struct app (id img countdown))
-
-;; Entree state (*sigh*)
-; id - the player's server assigned id (false while waiting)
-; players - list of current players
-; food - list of available cupcakes
-(struct entree (id players food))
-
-
 
 ;; label is the name you wish to use for the game
 ;; server is the ip of the server to connect to (or LOCALHOST)
@@ -121,10 +119,10 @@
 
 (define (add-path id players base-scene)
   (define player
-    (findf (lambda (x) (id=? (player-id x))) players))
-    (if (boolean? player)
-        base-scene
-        (add-waypoint* player base-scene)))
+    (findf (lambda (x) (id=? id (player-id x))) players))
+  (if (boolean? player)
+      base-scene
+      (add-waypoint* player base-scene)))
 
 (define (add-waypoint* player base-scene)
   (define loc  (body-loc (player-body player)))

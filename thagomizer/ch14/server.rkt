@@ -4,21 +4,6 @@
 (provide bon-appetit)
 
 ;;
-;; CONSTANTS
-;;
-(define TICK .1)
-(define PLAYER-LIMIT 2)
-(define START-TIME 0)
-(define WAIT-TIME 250)
-
-(define FOOD*PLAYERS 5)
-
-(define WEIGHT-FACTOR 2.1)
-(define BASE-SPEED (/ (expt PLAYER-SIZE 2) WEIGHT-FACTOR))
-
-(define JOIN0 (join empty START-TIME))
-
-;;
 ;; STRUCTS
 ;;
 
@@ -32,6 +17,21 @@
 ; food - list of remaining cupcakes
 ; spectators - list of spectators
 (struct play (players food spectators) #:mutable)
+
+;;
+;; CONSTANTS
+;;
+(define TICK .1)
+(define PLAYER-LIMIT 2)
+(define START-TIME 0)
+(define WAIT-TIME 250)
+
+(define FOOD*PLAYERS 5)
+
+(define WEIGHT-FACTOR 2.1)
+(define BASE-SPEED (/ (expt PLAYER-SIZE 2) WEIGHT-FACTOR))
+
+(define JOIN0 (join empty START-TIME))
 
 (define-values
   (ip ip? ip-id ip-iw ip-body ip-waypoints ip-player)
