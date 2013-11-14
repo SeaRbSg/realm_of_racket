@@ -191,15 +191,19 @@
   (for/fold ([foods foods]) ([p players])
     (eat-all-the-things p foods)))
 
+(define add-cupcake true)
 (define (eat-all-the-things player foods)
   (define b (ip-body player))
   (for/fold ([foods '()]) ([f foods])
     (cond
       [(body-collide? f b)
        (set-body-size! b (+ PLAYER-FATTEN-DELTA (body-size b)))
-       (cons (create-a-body CUPCAKE) foods)]
+       (set! add-cupcake (not add-cupcake))
+       (if add-cupcake
+           (cons (create-a-body CUPCAKE) foods)
+           foods
+           )]
       [else (cons f foods)])))
-
 
 (define (body-collide? s1 s2)
   (<= (magnitude (- (body-loc s1) (body-loc s2)))
