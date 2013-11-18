@@ -8,7 +8,6 @@
 (define PLAYER-LIMIT 2)
 (define START-TIME 0)
 (define WAIT-TIME 250)
-(define JOIN0 (join empty START-TIME))
 (define FOOD*PLAYERS 5)
 
 (define WEIGHT-FACTOR 2.1)
@@ -16,6 +15,7 @@
 
 (struct join (clients [time #:mutable]))
 (struct play (players food spectators) #:mutable)
+(define JOIN0 (join empty START-TIME))
 
 (define-values
   (ip ip? ip-id ip-iw ip-body ip-waypoints ip-player)
@@ -102,8 +102,6 @@
     (define mails (list (make-mail iw (ip-id player))))
     (make-bundle (adder u player) mails empty)))
 
-(define add-spectator (make-connection play-add-spectator))
-
 (define (join-add-player j new-p)
   (join (cons new-p (join-clients j)) (join-time j)))
 
@@ -169,6 +167,11 @@
 (define (get-iws p)
   (map ip-iw (append (play-players p) (play-spectators p))))
 
+(define (create-a-body size)
+  (define x (+ size (random (- WIDTH size))))
+  (define y (+ size (random (- HEIGHT size))))
+  (body size (make-rectangular x y)))
+
 (define (play-add-spectator pu new-s)
   (define players (play-players pu))
   (define spectators (play-spectators pu))
@@ -176,9 +179,23 @@
 
 (define add-spectator (make-connection play-add-spectator))
 
+(define (refresh players)
+  (for/list ([p players])
+    (create-player (ip-iw p) (ip-id p))))
+
+(define (goto? msg)
+  (and (list? msg)
+       (= GOTO-LENGTH (length msg))
+       (symbol? (first msg))
+       (number? (second msg))
+       (number? (third msg))
+       (symbol=? GOTO (first msg))
+       (<= 0 (second msg) WIDTH)
+       (<= 0 (third msg) HEIGHT)))
+
 (define (goto p iw msg)
   (define c (make-rectangular (second msg) (third msg)))
-  (set-play-powers! p (add-waypoint (play-players p) c iw))
+  (set-play-players! p (add-waypoint (play-players p) c iw))
   (broadcast-universe p))
 
 (define (add-waypoint ps c iw)
@@ -204,9 +221,6 @@
 (define (score ps)
   (for/list ([p ps])
             (list (ip-id p) (get-score (body-size (ip-body p))))))
-
-(define (get-score f)
-  (/ (- f PLAYER-SIZE) PLAYER-FATTEN-DELTA))
 
 (define (remake-join p)
   (define players (refresh (play-players p)))

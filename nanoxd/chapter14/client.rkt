@@ -1,10 +1,47 @@
 #lang racket
 
+(provide lets-eat)
 (require "shared.rkt"
          2htdp/universe 2htdp/image)
 
+;; Image Constants
+(define FOOD-IMG (bitmap "graphics/cupcake.gif"))
+(define PLAYER-IMG (bitmap "graphics/hungry-henry.gif"))
+(define BASE (empty-scene WIDTH HEIGHT))
+(define WAYPOINT-NODE (circle 3 'solid 'black))
+;; Color Constants
+(define PLAYER-COLOR "red")
+(define MY-COLOR "blue")
+(define WAYPOINT-COLOR "green")
+;; Text Constants
+(define LOADING... "Waiting For Server")
+(define TEXT-SIZE 20)
+(define SCORE-SIZE 20)
+(define TEXT-COLOR "black")
+(define END-OPEN-TEXT "your score was: ")
+(define END-CLOSE-TEXT ", the winner was player ")
+(define LOADING-OPEN-TEXT "\nYou are ")
+(define SEPERATOR ": ")
+;; PBAR constants
+(define PBAR-HEIGHT 35)
+(define PBAR-LOC (- HEIGHT PBAR-HEIGHT))
+(define PBAR-COLOR "red")
+(define PBAR-TEXT (text "loading..." 20 "black"))
+;; Message ID Constants
+(define UPDATE-LENGTH 3)
+(define SPLAYER-LENGTH 3)
+(define SBODY-LENGTH 2)
+(define END-LENGTH 2)
+(define SCORE-LIST-LENGTH 2)
+;; Init Constants
+(define ZERO% 0)
+(define LOADING (text LOADING... 20 "black"))
+
+
 (struct app (id img countdown) #:transparent)
 (struct entree (id players food) #:transparent)
+
+(define INITIAL (app #f LOADING ZERO%))
 
 ;; 14.6 Main, Take Client
 
@@ -31,6 +68,13 @@
 
 (define (render-appetizer app)
   (add-progress-bar (render-id+image app) (app-countdown app)))
+
+(define (render-progress count)
+  (overlay PBAR-TEXT (rectangle (* count WIDTH)
+                                PBAR-HEIGHT "solid" PBAR-COLOR)))
+
+(define (add-progress-bar base count)
+  (place-image (render-progress count) (/ WIDTH 2) PBAR-LOC base))
 
 (define (render-id+image app)
   (define id (app-id app))
@@ -98,3 +142,74 @@
   (for/fold ([img empty-image]) ([name-score scores])
             (define txt (get-text name-score))
             (above (render-text txt) img)))
+
+(define (state? msg)
+  (and (list? msg)
+       (= UPDATE-LENGTH (length msg))
+       (symbol? (first msg))
+       (list? (second msg))
+       (list? (third msg))
+       (symbol=? SERIALIZE (first msg))
+       (andmap player? (second msg))
+       (andmap body? (third msg))))
+
+(define (add-food foods base-scene)
+  (for/fold ([scn base-scene]) ([f foods])
+    (place-image FOOD-IMG (body-x f) (body-y f) scn)))
+
+(define (feaster-x feaster)
+  (body-x (player-body feaster)))
+
+(define (feaster-y feaster)
+  (body-y (player-body feaster)))
+
+(define (render-text txt)
+  (text txt TEXT-SIZE TEXT-COLOR))
+
+(define (render-player-score player)
+  (render-text (number->string (get-score
+                                 (body-size (player-body player))))))
+
+(define (add-waypoint* player base-scene)
+  (define loc  (body-loc (player-body player)))
+  (define ways (player-waypoints player))
+  (define-values (resulting-scene _)
+    (for/fold ([scn base-scene][from loc]) ([to ways])
+      (values (add-waypoint from to scn) to)))
+  resulting-scene)
+
+(define (update-entree s state-msg)
+  (apply entree (entree-id s) (rest state-msg)))
+
+(define (score? msg)
+  (and (list? msg)
+       (= END-LENGTH (length msg))
+       (symbol? (first msg))
+       (list? (second msg))
+       (symbol=? SCORE (first msg))
+       (score-list? (second msg))))
+
+(define (get-text name-score)
+  (define-values (name score) (apply values name-score))
+  (string-append name SEPERATOR (number->string score)))
+
+(define (body-x body)
+  (real-part (body-loc body)))
+
+(define (body-y body)
+  (imag-part (body-loc body)))
+
+(define (add-waypoint from to s)
+  (define x-from (real-part from))
+  (define y-from (imag-part from))
+  (define x-to (real-part to))
+  (define y-to (imag-part to))
+  (define with-line (add-line s x-to y-to x-from y-from WAYPOINT-COLOR))
+  (place-image WAYPOINT-NODE x-to y-to with-line))
+
+(define (score-list? l)
+  (for/and ([s l])
+    (and (list? s)
+         (= SCORE-LIST-LENGTH (length s))
+         (id? (first s))
+         (number? (second s)))))
