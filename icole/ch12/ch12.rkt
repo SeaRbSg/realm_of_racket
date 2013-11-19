@@ -197,6 +197,7 @@
              (dice-world #f (game-board m) m)]
         [else
          (define ai (the-ai-plays m))
+         (sleep 2.0)
          (dice-world #f (game-board ai) ai)]))
 
 (define (find-move moves action)
