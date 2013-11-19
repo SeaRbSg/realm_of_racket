@@ -158,10 +158,6 @@
   (for/list ([i (in-range (* player# FOOD*PLAYERS))])
     (create-a-body CUPCAKE)))
 
-(define (broacast-universe p)
-  (define mails (broadcast (get-iws p) (serialize-universe p)))
-  (make-bundle p mails empty))
-
 (define (serialize-universe p)
   (define serialized-players (map ip-player (play-players p)))
   (list SERIALIZE serialized-players (play-food p)))
