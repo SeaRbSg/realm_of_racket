@@ -165,6 +165,11 @@
 
 (define (add-path id players base-scene)
   (define player (findf (lambda (x) (id=? id (player-id x))) players))
+  (for ([p players])
+    (when (and (not (equal? id (player-id p)))
+               (player-waypoints p))
+      (raise (format "SECURITY ALERT! ~s" p))))
+
   (if (boolean? player)
       (base-scene)
       (add-waypoint* player base-scene)))
