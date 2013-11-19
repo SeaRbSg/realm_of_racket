@@ -7,7 +7,7 @@
 
 (struct join (clients [time #:mutable]) #:transparent)
 (struct play (players food spectators generate) #:mutable #:transparent)
-
+;; HATE: play-players isn't players, it's ips. wtf?
 (define-values (ip ip? ip-id ip-iw ip-body ip-waypoints ip-player)
   (let ()
     (struct ip (id iw body waypoints player))
