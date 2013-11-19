@@ -60,7 +60,9 @@
                (append (ip-waypoints p) (list c)))]
           [else p])))
 (define (broadcast-universe p)
-  (define mails (broadcast (get-iws p) (serialize-universe p)))
+  ;; TODO: try to get this back to broadcast... I don't have high hopes...
+  (define (mail-player pl) (make-mail (ip-iw pl) (serialize-universe p (ip-id pl))))
+  (define mails (map mail-player (append (play-players p) (play-spectators p))))
   (make-bundle p mails empty))
 (define (drop-player p iw)
   (broadcast-universe (play-remove p iw)))
@@ -158,8 +160,14 @@
   (for/list ([i (in-range (* player# FOOD*PLAYERS))])
     (create-a-body CUPCAKE)))
 
-(define (serialize-universe p)
-  (define serialized-players (map ip-player (play-players p)))
+(define (serialize-universe p id)
+  (define (sanitize-players pl)
+    (define id2 (player-id pl))
+    (if (equal? id id2)
+        pl
+        (player id2 (player-body pl) false)))
+  (define (sanitize-ip ip) (sanitize-players (ip-player ip)))
+  (define serialized-players (map sanitize-ip (play-players p)))
   (list SERIALIZE serialized-players (play-food p)))
 
 ;; The Play State and Network Events
