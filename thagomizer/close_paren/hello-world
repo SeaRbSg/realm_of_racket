@@ -1,0 +1,8 @@
+#!/bin/sh
+# This script was created by make-mzscheme-launcher
+
+# {{{ bindir
+bindir="/Applications/Racket v5.3.6/bin"
+# }}} bindir
+
+exec "${bindir}/racket" -N "$0" '-t' '/Users/aja/Projects/realm_of_racket/thagomizer/close_paren/hello-world.rkt' '-U' '--'  ${1+"$@"}
