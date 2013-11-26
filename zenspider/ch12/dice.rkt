@@ -201,7 +201,7 @@
 (define (pass w)
   (define m (find-move (game-moves (dice-world-gt w)) empty))
   (cond [(false? m) w]
-        [(or (no-more-moves? m) (not (= (game-player m) AI)))
+        [(or (no-more-moves? m) (not (ai-turn? m)))
          (dice-world false (game-board m) m)]
         [else
          (define ai (the-ai-plays m))
@@ -372,18 +372,21 @@
              0)]
         [else
          (define ratings (rate-moves tree depth))
-         (apply (if (= (game-player tree) AI) max min)
+         (apply (if (ai-turn? tree) max min)
                 (map second ratings))]))
 
 (define (the-ai-plays tree)
   (define ratings  (rate-moves tree AI-DEPTH))
   (define the-move (first (argmax second ratings)))
   (define new-tree (move-gt the-move))
-  (if (= (game-player new-tree) AI)
+  (if (ai-turn? new-tree)
       (the-ai-plays new-tree)
       new-tree))
 
 ;;; Misc
+
+(define (ai-turn? game)
+  (= (game-player game) AI))
 
 (define (no-more-moves? g)
   (empty? (game-moves g)))
