@@ -48,7 +48,7 @@
   (list (make-color 255 0 0 100)
         (make-color 0 255 0 100)
         (make-color 0 0 255 100)))
-(define FOCUS (rotate ROTATION (regular-polygon SIDE 6 "outline" "black")))
+(define FOCUS (rotate ROTATION (regular-polygon SIDE HEX "outline" "black")))
 (define IMG-LIST (list
                   (bitmap "../ch10/dice1.png")
                   (bitmap "../ch10/dice2.png")
