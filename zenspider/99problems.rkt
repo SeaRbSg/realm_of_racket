@@ -20,12 +20,13 @@
       l
       (my-last (rest l))))
 
-(check-equal? (my-last '())
-              '())
-(check-equal? (my-last '(a))
-              '(a))
-(check-equal? (my-last '(a b c d))
-              '(d))
+(module+ test
+  (check-equal? (my-last '())
+                '())
+  (check-equal? (my-last '(a))
+                '(a))
+  (check-equal? (my-last '(a b c d))
+                '(d)))
 
 ;;    [2]P02 (*) Find the last but one box of a list.
 ;;           Example:
@@ -37,14 +38,15 @@
       l
       (my-but-last (rest l))))
 
-(check-equal? (my-but-last '())
-              '())
-(check-equal? (my-but-last '(a))
-              '(a))
-(check-equal? (my-but-last '(a b))
-              '(a b))
-(check-equal? (my-but-last '(a b c d))
-              '(c d))
+(module+ test
+  (check-equal? (my-but-last '())
+                '())
+  (check-equal? (my-but-last '(a))
+                '(a))
+  (check-equal? (my-but-last '(a b))
+                '(a b))
+  (check-equal? (my-but-last '(a b c d))
+                '(c d)))
 
 ;;    [3]P03 (*) Find the K'th element of a list.
 ;;           The first element in the list is number 1.
@@ -71,12 +73,13 @@
       (first l) ; exception handled by contract in first
       (element-at (rest l) (sub1 n))))
 
-(check-equal? (element-at '(a b c d e) 1)
-              'a)
-(check-equal? (element-at '(a b c d e) 3)
-              'c)
-(check-exn exn:fail?
-           (λ () (element-at '(a b c d e) 6)))
+(module+ test
+  (check-equal? (element-at '(a b c d e) 1)
+                'a)
+  (check-equal? (element-at '(a b c d e) 3)
+                'c)
+  (check-exn exn:fail?
+             (λ () (element-at '(a b c d e) 6))))
 
 ;;    [4]P04 (*) Find the number of elements of a list.
 
@@ -85,12 +88,13 @@
       0
       (add1 (list-size (rest l)))))
 
-(check-equal? (list-size empty)
-              0)
-(check-equal? (list-size '(a))
-              1)
-(check-equal? (list-size '(a b c d e))
-              5)
+(module+ test
+  (check-equal? (list-size empty)
+                0)
+  (check-equal? (list-size '(a))
+                1)
+  (check-equal? (list-size '(a b c d e))
+                5))
 
 ;;    [5]P05 (*) Reverse a list.
 
@@ -99,12 +103,13 @@
       l
       (append (reverse-list (rest l)) (list (first l))))) ; cheating?
 
-(check-equal? (reverse-list '())
-              '())
-(check-equal? (reverse-list '(a))
-              '(a))
-(check-equal? (reverse-list '(a b c d e))
-              '(e d c b a))
+(module+ test
+  (check-equal? (reverse-list '())
+                '())
+  (check-equal? (reverse-list '(a))
+                '(a))
+  (check-equal? (reverse-list '(a b c d e))
+                '(e d c b a)))
 
 ;;    [6]P06 (*) Find out whether a list is a palindrome.
 ;;           A palindrome can be read forward or backward; e.g. (x a m a x).
@@ -112,10 +117,11 @@
 (define (palindrome? l)
   (equal? l (reverse-list l)))
 
-(check-true  (palindrome? '()))
-(check-true  (palindrome? '(a)))
-(check-true  (palindrome? '(a b a)))
-(check-false (palindrome? '(a b)))
+(module+ test
+  (check-true  (palindrome? '()))
+  (check-true  (palindrome? '(a)))
+  (check-true  (palindrome? '(a b a)))
+  (check-false (palindrome? '(a b))))
 
 ;;    [7]P07 (**) Flatten a nested list structure.
 ;;           Transform a list, possibly holding lists as elements into a
@@ -134,14 +140,15 @@
         [else (cons (first l)
                     (my-flatten (rest l)))]))
 
-(check-equal? (my-flatten '(a b c d e))
-              '(a b c d e))
+(module+ test
+  (check-equal? (my-flatten '(a b c d e))
+                '(a b c d e))
 
-(check-equal? (my-flatten '((a) b c d e))
-              '(a b c d e))
+  (check-equal? (my-flatten '((a) b c d e))
+                '(a b c d e))
 
-(check-equal? (my-flatten '(a (b (c d) e)))
-              '(a b c d e))
+  (check-equal? (my-flatten '(a (b (c d) e)))
+                '(a b c d e)))
 
 ;;    [8]P08 (**) Eliminate consecutive duplicates of list elements.
 ;;           If a list contains repeated elements they should be replaced
@@ -157,14 +164,15 @@
         [(equal? (first l) (second l)) (compress (rest l))]
         [else (cons (first l) (compress (rest l)))]))
 
-(check-equal? (compress '(a b c))
-              '(a b c))
+(module+ test
+  (check-equal? (compress '(a b c))
+                '(a b c))
 
-(check-equal? (compress '(a b b b c))
-              '(a b c))
+  (check-equal? (compress '(a b b b c))
+                '(a b c))
 
-(check-equal? (compress '(a a a b b b c c c a a))
-              '(a b c a))
+  (check-equal? (compress '(a a a b b b c c c a a))
+                '(a b c a)))
 
 ;;    [9]P09 (**) Pack consecutive duplicates of list elements into sublists.
 ;;           If a list contains repeated elements they should be placed in
@@ -205,12 +213,13 @@
 
   (inner-pack (rest l) (list (first l)) empty))
 
-(check-equal? (pack1 '(a a a a b c c a a d e e e e))
-              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
-(check-equal? (pack2 '(a a a a b c c a a d e e e e))
-              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
-(check-equal? (pack3 '(a a a a b c c a a d e e e e))
-              '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+(module+ test
+  (check-equal? (pack1 '(a a a a b c c a a d e e e e))
+                '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+  (check-equal? (pack2 '(a a a a b c c a a d e e e e))
+                '((a a a a) (b) (c c) (a a) (d) (e e e e)))
+  (check-equal? (pack3 '(a a a a b c c a a d e e e e))
+                '((a a a a) (b) (c c) (a a) (d) (e e e e))))
 
 ;;    [10]P10 (*) Run-length encoding of a list.
 ;;           Use the result of problem P09 to implement the so-called
@@ -231,10 +240,11 @@
 (define (encode2 l)
   (map (lambda (l) (list (length l) (first l))) (pack3 l)))
 
-(check-equal? (encode1 '(a a a a b c c a a d e e e e))
-              '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e)))
-(check-equal? (encode2 '(a a a a b c c a a d e e e e))
-              '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e)))
+(module+ test
+  (check-equal? (encode1 '(a a a a b c c a a d e e e e))
+                '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e)))
+  (check-equal? (encode2 '(a a a a b c c a a d e e e e))
+                '((4 a) (1 b) (2 c) (2 a) (1 d) (4 e))))
 
 ;;    [11]P11 (*) Modified run-length encoding.
 ;;           Modify the result of problem P10 in such a way that if an
@@ -251,8 +261,9 @@
                       (if (= len 1) (first l) (list len (first l))))))
   (map encoder (pack3 l)))
 
-(check-equal? (encode-modified '(a a a a b c c a a d e e e e))
-              '((4 a) b (2 c) (2 a) d (4 e)))
+(module+ test
+  (check-equal? (encode-modified '(a a a a b c c a a d e e e e))
+                '((4 a) b (2 c) (2 a) d (4 e))))
 
 ;;    [12]P12 (**) Decode a run-length encoded list.
 ;;           Given a run-length code list generated as specified in problem
@@ -269,8 +280,9 @@
                                    (rest l)))))]
         [else (cons (first l) (decode (rest l)))]))
 
-(check-equal? (decode '((4 a) b (2 c) (2 a) d (4 e)))
-              '(a a a a b c c a a d e e e e))
+(module+ test
+  (check-equal? (decode '((4 a) b (2 c) (2 a) d (4 e)))
+                '(a a a a b c c a a d e e e e)))
 
 ;;    [13]P13 (**) Run-length encoding of a list (direct solution).
 ;;           Implement the so-called run-length encoding data compression
@@ -296,8 +308,9 @@
 
   (cleanup (inner-encode (rest l) (list (list 1 (first l))))))
 
-(check-equal? (encode-direct '(a a a a b c c a a d e e e e))
-              '((4 a) b (2 c) (2 a) d (4 e)))
+(module+ test
+  (check-equal? (encode-direct '(a a a a b c c a a d e e e e))
+                '((4 a) b (2 c) (2 a) d (4 e))))
 
 ;;    [14]P14 (*) Duplicate the elements of a list.
 ;;           Example:
@@ -310,8 +323,9 @@
                     (cons (first l)
                           (dupli (rest l))))]))
 
-(check-equal? (dupli '(a b c c d))
-              '(a a b b c c c c d d))
+(module+ test
+  (check-equal? (dupli '(a b c c d))
+                '(a a b b c c c c d d)))
 
 ;;    [15]P15 (**) Replicate the elements of a list a given number of times.
 ;;           Example:
@@ -327,8 +341,9 @@
 
 ;; I could also avoid append using cons and then my-flatten
 
-(check-equal? (repli '(a b c) 3)
-              '(a a a b b b c c c))
+(module+ test
+  (check-equal? (repli '(a b c) 3)
+                '(a a a b b b c c c)))
 
 ;;    [16]P16 (**) Drop every N'th element from a list.
 ;;           Example:
@@ -343,8 +358,9 @@
 
   (inner-drop l 1))
 
-(check-equal? (drop '(a b c d e f g h i k) 3)
-              '(a b d e g h k))
+(module+ test
+  (check-equal? (drop '(a b c d e f g h i k) 3)
+                '(a b d e g h k)))
 
 ;;    [17]P17 (*) Split a list into two parts; the length of the first part
 ;;           is given.
