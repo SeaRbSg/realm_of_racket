@@ -1,12 +1,20 @@
 #lang racket
 
+(random-seed 42)
+
 (require 2htdp/image (except-in 2htdp/universe left right))
 
 ;;; 10.5: Structs
 
-(struct dice-world (src board gt)          #:transparent)
-(struct territory  (index player dice)     #:transparent)
+(struct dice-world (src board gt moves)    #:transparent #:omit-define-syntaxes #:extra-constructor-name -dice-world)
+(struct territory  (index player dice)     #:transparent #:omit-define-syntaxes #:extra-constructor-name -territory)
 (struct move       (action gt)             #:transparent)
+
+(define (dice-world src board gt [moves #f])
+  (-dice-world src board gt moves))
+
+(define (territory index player dice [a #f] [b #f])
+  (-territory index player dice))
 
 ;; This is fucking _smart_. I like it:
 
@@ -24,7 +32,7 @@
 (define PLAYER# 2)
 (define DICE# 3)
 (define SIZE-DIE 6)
-(define BOARD 4)
+(define BOARD 3)
 (define GRID (* BOARD BOARD))
 (define INIT-PLAYER 0)
 (define INIT-SPARE-DICE 10)
@@ -86,9 +94,17 @@
 
 (define (roll-the-dice)
   (big-bang (create-world-of-dice-and-doom)
+            #;(on-tick   run-through-moves)
             (on-key    interact-with-board)
             (to-draw   draw-dice-world)
             (stop-when no-more-moves-in-world? draw-end-of-dice-world)))
+
+#;(define (run-through-moves w)
+  (if (ai-has-moves? w)
+      (let* ((moves (dice-world-moves w))
+             (move  (first moves)))
+        (dice-world false (game-board (move-gt move)) (move-gt move) (rest moves)))
+      w))
 
 (define (create-world-of-dice-and-doom)
   (define board (territory-build))
@@ -124,6 +140,7 @@
                    (add-board-to-scene w (ISCENE))))
 
 (define (interact-with-board w k)
+  (when (ai-has-moves? w) (raise "woot"))
   (case (string->symbol k)
     [(left)  (refocus-board w right)]
     [(right) (refocus-board w left)]
@@ -205,6 +222,7 @@
          (dice-world false (game-board m) m)]
         [else
          (define ai (the-ai-plays m))
+         #;(dice-world false (game-board m) m ai) ; TODO: not sure if (game-board m) is right
          (dice-world false (game-board ai) ai)]))
 
 (define (find-move moves action)
@@ -360,6 +378,10 @@
 
 ;;; 12.3: AI
 
+(define (ai-has-moves? w)
+  (let ((moves (dice-world-moves w)))
+    (and moves (not (empty? moves)))))
+
 (define (rate-moves tree depth)
   (for/list ([move (game-moves tree)])
     (list move (rate-positions (move-gt move) (- depth 1)))))
@@ -374,6 +396,14 @@
          (define ratings (rate-moves tree depth))
          (apply (if (ai-turn? tree) max min)
                 (map second ratings))]))
+
+(define (new-the-ai-plays tree)
+  (define ratings  (rate-moves tree AI-DEPTH))
+  (define the-move (first (argmax second ratings)))
+  (define new-tree (move-gt the-move))
+  (if (ai-turn? new-tree)
+      (cons the-move (the-ai-plays new-tree))
+      empty))
 
 (define (the-ai-plays tree)
   (define ratings  (rate-moves tree AI-DEPTH))
@@ -409,11 +439,38 @@
 
 ;;; Main
 
-(module+ main
-  (roll-the-dice))
-
 (module+ test
   (require rackunit)
+
+  (define (rate-position tree depth) ; HACK
+    (rate-positions tree depth))
+
+  (define (execute board player src dst sdice [ddice 0]) ; HACK
+    (attack board player src dst sdice ddice))
+
+  ;; sample game tree for BOOK
+
+  (define b1
+    (list (territory 1 0 1 'a 'b)
+          (territory 0 0 1 'x 'y)))
+
+  (define b1-alternative
+    (list (territory 0 0 1 'x 'y)
+          (territory 1 0 1 'a 'b)))
+
+  (define b3
+    (list (territory 0 0 2 'x 'y)
+          (territory 1 1 1 'a 'b)))
+
+  (define gt1 (game b1 1 (delay '())))
+
+  (define mv2 (move '() gt1))
+
+  (define gt2 (game b1-alternative 0 (delay (list mv2))))
+
+  (define mv3 (move '(0 1) gt2))
+
+  (define gt3 (game b3 0 (delay (list mv3))))
 
   (define (mapper vals)
     (map (lambda (v) (apply territory v)) vals))
@@ -425,7 +482,7 @@
                       (territory 3 1 1)))
 
   (random-seed 42)
-  (check-equal? (create-world-of-dice-and-doom)
+  #;(check-equal? (create-world-of-dice-and-doom)
                 (let ((t1 (mapper '((0 0 1) (1 1 1) (2 0 3) (3 1 1))))
                       (t2 (mapper '((0 0 1) (1 1 1) (2 0 1) (3 0 2))))
                       (t3 (mapper '((3 0 3) (2 0 2) (1 1 1) (0 0 2))))
@@ -448,3 +505,339 @@
                                          t4
                                          0
                                          (list (move empty (game t5 1 empty))))))))))))))
+
+(define (set-grid n)
+  (set! BOARD n)
+  (set! GRID (* n n)))
+
+(module+ test
+  (require "../check-sexp-equal.rkt" #;(for-syntax "../check-sexp-equal.rkt"))
+  (require rackunit rackunit/text-ui)
+
+  (define old-size BOARD)
+  (set-grid 2)
+
+  ;; (-> any) -> void
+  ;; runs the thunk PROP-NUM times
+  (define (check-property t)
+    (test-begin (for ((i 50)) (t))))
+
+  ;; Properties
+  (define (property:starting-world-playable)
+    (unless (and (<= BOARD 5) (= PLAYER# 2))
+      (error 'starting-world-playable "BOARD-SIZE != 2 or PLAYERS# != 2"))
+    (check-false (no-more-moves-in-world? (create-world-of-dice-and-doom))))
+
+  (define (property:dice-in-range)
+    (check-true (andmap (λ (b) (>= DICE# (territory-dice b) 1)) (territory-build))
+                "dice out of range"))
+
+  (define (property:board-correct-size)
+    (check-equal? (length (territory-build)) GRID
+                  "board incorrect-size"))
+
+  (define (property:no-pass-on-first-move)
+    (define (move-action? m) (equal? (move-action m) '()))
+    (check-true (not (memf move-action? (game-moves (game-tree (territory-build) 0 0))))
+                "no pass on first move"))
+
+  ;; ---------------------------------------------------------------------------------------------------
+
+
+  ;; testing game initialization
+
+  (check-equal? (territory-index (first (territory-build))) 0)
+  (check-equal? (territory-player (first (territory-build))) 0)
+  (check-equal? (territory-index (second (territory-build))) 1)
+  (check-equal? (territory-player (second (territory-build))) 1)
+  (check-equal? (territory-index (third (territory-build))) 2)
+  (check-equal? (territory-player (third (territory-build))) 0)
+  (check-equal? (territory-index (fourth (territory-build))) 3)
+  (check-equal? (territory-player (fourth (territory-build))) 1)
+
+  (check-property property:starting-world-playable)
+  (check-property property:board-correct-size)
+  (check-property property:dice-in-range)
+  (check-property property:no-pass-on-first-move)
+
+  ;; ---------------------------------------------------------------------------------------------------
+  ;; testing territory manipulation
+
+  ;; legal?
+  (check-true
+   (and (attackable? (list (territory 0 0 2 9 0) (territory 3 1 1 9 0)) 0 (territory 0 0 2 9 0) 3) #t))
+  (check-false
+   (attackable? (list (territory 0 0 2 9 0) (territory 3 1 1 9 0)) 0 (territory 0 0 2 9 0) 0))
+  (check-false
+   (attackable? (list (territory 0 0 2 9 0) (territory 5 1 1 9 0)) 1 (territory 0 0 2 9 0) 5))
+
+  ;; get-row
+  (check-equal? (get-row 0) 0)
+  (check-equal? (get-row 1) 0)
+  (check-equal? (get-row 2) 1)
+  (check-equal? (get-row 3) 1)
+  (check-equal? (get-row 12) 6) ;; checks math. actually invalid on board of size 2
+  (check-equal? (get-row 11) 5) ;; checks math. actually invalid on board of size 2
+  (check-equal? (get-row 13) 6) ;; checks math. actually invalid on board of size 2
+  (check-equal? (get-row 14) 7) ;; checks math. actually invalid on board of size 2
+
+  ;; ---------------------------------------------------------------------------------------------------
+  (define board3
+    (list (territory 0 1 1 9 0) (territory 1 1 1 8 0) (territory 2 1 3 43.5 5) (territory 3 1 1 6 5)))
+  (define b1+0+3
+    (list (territory 0 0 2 9 0) (territory 1 1 1 8 0) (territory 2 0 2 43.5 5) (territory 3 1 1 6 5)))
+  (define b2+1+2
+    (list (territory 0 0 1 9 0) (territory 1 1 3 8 0) (territory 2 0 2 43.5 5) (territory 3 1 2 6 5)))
+  (define board6
+    (list (territory 0 0 1 9 0) (territory 1 1 2 8 0) (territory 2 0 3 43.5 5) (territory 3 1 2 6 5)))
+  (define bard6+
+    (list (territory 0 0 1 9 0) (territory 1 1 2 8 0) (territory 2 0 3 43.5 5) (territory 3 1 2 6 5)))
+
+  (define (distribute/list a b c)
+    (define-values (x y) (distribute a b c))
+    (list x y))
+
+  (define board0
+    (list (territory 0 0 1 9 0) (territory 1 1 2 8 0) (territory 2 0 2 43.5 5) (territory 3 1 1 6 5)))
+  (define board1
+    (list (territory 0 0 1 9 0) (territory 1 1 1 8 0) (territory 2 0 1 43.5 5) (territory 3 1 1 6 5)))
+  (define b1+1+2
+    (list (territory 0 0 1 9 0) (territory 1 1 2 8 0) (territory 2 0 1 43.5 5) (territory 3 1 2 6 5)))
+  (define board2
+    (list (territory 0 0 1 9 0) (territory 1 1 1 8 0) (territory 2 0 3 43.5 5) (territory 3 1 1 6 5)))
+
+  (define g-tree1 (game board1 0 (delay '())))
+  (define g-tree2 (game-tree board0 0 0))
+
+  ; (define world31 (dice-world #f board1 g-tree1))
+  (define world2 (dice-world #f board2 g-tree2))
+
+  ;; testing book tree
+
+  (define (game-tree=? gt1 gt2)
+    (and (equal? (game-player gt1) (game-player gt2))
+         (equal? (game-board gt1) (game-board gt2))
+         (= (length (game-moves gt1)) (length (game-moves gt2)))))
+
+  (check game-tree=?
+         (game-tree (list (territory 0 0 2 'x 'y) (territory 1 1 1 'a 'b)) 0 0)
+         gt3)
+
+  ;; testing tree generation
+
+  (define (property:attack-location-valid)
+    (define moves (game-moves (game-tree (territory-build) 0 0)))
+    (check-true (and (for/and ([m moves])
+                       (define m1 (move-action m))
+                       (member (second m1) (neighbors (first m1))))
+                     #t)
+                "invalid attack location"))
+
+  (define (property:add-to-territory-always-up-one)
+    (define r (random 10000))
+    (check-equal? (add-dice-to (territory 0 0 r 0 0))
+                  (territory 0 0 (add1 r) 0 0)
+                  "add to territory always up one"))
+
+  (define (property:attackable?-does-not-need-neighbores-check)
+    (define (check-attackable? gt)
+      (for/and ([move (game-moves gt)]
+                #:when (not (empty? (move-action move))))
+        (define action (move-action move))
+        (define gt (move-gt move))
+        (and (member (second action) (neighbors (first action)))
+             (check-attackable? gt))))
+
+    ;;start
+    (define testing-gt (dice-world-gt (create-world-of-dice-and-doom)))
+    (check-true (check-attackable? testing-gt) "An attack move between non-neighbores was created")
+    )
+
+
+  ;; game-tree
+  (check game-tree=? (game-tree board1 0 0) g-tree1)
+  (check game-tree=? (game-tree board3 1 0) (game board3 1 (delay '())))
+  (check game-tree=? (game-tree board3 0 0) (game board3 0 (delay '())))
+  (check-property property:attackable?-does-not-need-neighbores-check)
+
+  ;; find-move
+  (define gt0 (game '() 0 (delay '())))
+
+  (check-false (find-move '() '()))
+  (check game-tree=? (find-move (list (move '() gt0)) '()) gt0)
+  ;; Attacking-Moves
+  (check-property property:attack-location-valid)
+
+  ;; switch-players
+  (check-equal? (switch 0) 1)
+  (check-equal? (switch 1) 0)
+
+  ;; Add-New-Dice
+  (check-equal? (distribute/list (game-board g-tree1) 0 3) (list 1 (reverse b1+0+3)))
+  (check-equal? (distribute/list (game-board g-tree1) 1 2) (list 0 (reverse b1+1+2)))
+  (check-equal? (distribute/list (game-board g-tree2) 1 2) (list 0 (reverse b2+1+2)))
+  (check-equal? (distribute/list board6 0 0) (list 0 (reverse bard6+)))
+
+  ;; add-to-territory
+  (check-equal? (add-dice-to (territory 0 1 2 9 0)) (territory 0 1 3 9 0))
+  (check-equal? (add-dice-to (territory 0 1 1 9 0)) (territory 0 1 2 9 0))
+  (check-equal? (add-dice-to (territory 0 1 5 9 0)) (territory 0 1 6 9 0))
+  (check-property property:add-to-territory-always-up-one)
+
+  ;; ---------------------------------------------------------------------------------------------------
+  (define board7
+    (list (territory 0 0 1 9 0) (territory 1 1 1 8 0) (territory 2 0 2 43.5 5) (territory 3 1 1 6 5)))
+  (define board8
+    (list (territory 0 1 1 9 0) (territory 1 1 1 8 0) (territory 2 0 3 43.5 5) (territory 3 1 1 6 5)))
+  (define board9
+    (list (territory 0 0 1 9 0) (territory 1 1 1 8 0) (territory 2 0 2 43.5 5) (territory 3 0 1 6 5)))
+  (define board10
+    (list (territory 0 0 1 9 0) (territory 1 1 3 8 0) (territory 2 0 2 43.5 5) (territory 3 1 1 6 5)))
+
+  ;; testing attacks
+
+  #;(check-equal?
+   (execute board7 0 2 1 2)
+   (list (territory 0 0 1 9 0) (territory 1 0 1 8 0) (territory 2 0 1 43.5 5) (territory 3 1 1 6 5)))
+
+  #;(check-sexp-equal?
+   (execute board8 0 2 1 3)
+   (list (territory 0 1 1 9 0) (territory 1 0 2 8 0) (territory 2 0 1 43.5 5) (territory 3 1 1 6 5)))
+
+  #;(check-sexp-equal?
+   (execute board9 0 2 1 2)
+   (list (territory 0 0 1 9 0) (territory 1 0 1 8 0) (territory 2 0 1 43.5 5) (territory 3 0 1 6 5)))
+
+  #;(check-sexp-equal?
+   (execute board10 1 1 0 3)
+   (list (territory 0 1 2 9 0) 
+         (territory 1 1 1 8 0) 
+         (territory 2 0 2 43.5 5) 
+         (territory 3 1 1 6 5)))
+
+  ;; Neighbors
+  (check-equal? (neighbors 2) '(0 3))
+  (check-equal? (neighbors 0) '(3 2 1))
+  (check-equal? (neighbors 1) '(3 0))
+  (check-equal? (neighbors 3) '(1 0 2))
+
+  ;; ---------------------------------------------------------------------------------------------------
+  (define board20
+    (list (territory 0 0 1 9 2) (territory 1 0 1 9 0) (territory 2 2 1 9 0)))
+  (define board21
+    (list (territory 0 1 1 9 0) (territory 1 1 1 8 0) (territory 2 1 1 43.5 5) (territory 3 1 1 6 5)))
+
+  ;; testing focus manipulation
+  ;; interact-with-board
+  #;(check-equal?
+   (interact-with-board world2 "\r")
+   (dice-world (territory-index (car (dice-world-board world2))) (dice-world-board world2) g-tree2))
+
+  (check-equal? (interact-with-board world2 "p") world2)
+
+  ;; refocus-board-action
+  (check-equal?
+   (refocus-board (dice-world #f (list (territory 0 0 1 9 0) (territory 0 0 1 9 2)) g-tree1) left)
+   (dice-world #f (list (territory 0 0 1 9 2) (territory 0 0 1 9 0)) g-tree1))
+
+  (check-equal?
+   (refocus-board (dice-world #f (list (territory 0 0 1 9 2) (territory 0 1 1 9 0)) g-tree1) right)
+   (dice-world #f (list (territory 0 0 1 9 2) (territory 0 1 1 9 0)) g-tree1))
+
+  (check-equal?
+   (refocus-board (dice-world 0 board20 g-tree1) left)
+   (dice-world 0 (list (territory 2 2 1 9 0) (territory 0 0 1 9 2) (territory 1 0 1 9 0)) g-tree1))
+
+  (check-equal?
+   (refocus-board (dice-world 0 (list (territory 0 0 1 9 2) (territory 0 1 1 9 0)) g-tree1) left)
+   (dice-world 0 (list  (territory 0 1 1 9 0) (territory 0 0 1 9 2)) g-tree1))
+
+  (check-equal?
+   (refocus-board (dice-world 0 (list(territory 0 0 1 9 2) (territory 0 1 1 9 0)) g-tree1) right)
+   (dice-world 0 (list  (territory 0 1 1 9 0) (territory 0 0 1 9 2)) g-tree1))
+
+  ;;unmark
+  (check-equal? (unmark (dice-world 1 board21 g-tree1)) (dice-world #f board21 g-tree1))
+
+  (check-equal? (unmark (dice-world 1 (list (territory 0 1 1 9 0) (territory 1 1 1 8 0)) g-tree1))
+                (dice-world #f (list (territory 0 1 1 9 0) (territory 1 1 1 8 0)) g-tree1))
+  (check-equal? (unmark (dice-world 0 (list (territory 0 1 1 9 0)) g-tree1))
+                (dice-world #f (list (territory 0 1 1 9 0)) g-tree1))
+  (check-equal? (unmark (dice-world #f (list (territory 0 1 1 9 0)) g-tree1))
+                (dice-world #f (list (territory 0 1 1 9 0)) g-tree1))
+
+  ;; ---------------------------------------------------------------------------------------------------
+  (define (winners/list w)
+    (define-values (a b) (winners w))
+    (cons a b))
+
+  ;; testing functions that determine 'winning' and declare the winner
+
+  ;; winners
+  (check-equal? (winners/list (list (territory 0 0 1 9 0) (territory 0 0 1 9 1))) (list 2 0))
+  (check-equal? (winners/list (list (territory 0 1 1 9 0) (territory 0 0 1 9 1))) (list 1 1 0))
+
+  ;; sum-territory
+  (check-equal? (sum-territory (list (territory 0 0 1 9 0) (territory 0 0 1 9 1)) 0) 2)
+  (check-equal? (sum-territory (list (territory 0 0 1 9 0) (territory 0 0 1 9 1)) 1) 0)
+  (check-equal? (sum-territory (list (territory 0 0 1 9 0) (territory 0 0 1 9 1)) 2) 0)
+  (check-equal? (sum-territory (list (territory 0 1 1 9 0) (territory 0 0 1 9 1)) 1) 1)
+  (check-equal? (sum-territory (list (territory 0 1 1 9 0) (territory 0 0 1 9 1)) 0) 1)
+
+  ;; ---------------------------------------------------------------------------------------------------
+  ;; testing the AI
+
+  (define tree0
+    (game-tree (list (territory 0 1 3 0 0)
+                     (territory 1 0 2 0 0)
+                     (territory 2 0 2 0 0)
+                     (territory 3 0 2 0 0))
+               1 15))
+
+  (define territory1 (territory 3 0 3 280 262.5))
+
+  (define board31
+    (list territory1
+          (territory 2 0 3 150 262.5)
+          (territory 1 1 2 345 150)
+          (territory 0 0 2 215 150)))
+
+  (define world1
+    (dice-world #f board31 (game board31 1 (delay '()))))
+
+  ;; testing the AI functions
+
+  ;; MF: one of these two tests should fail!
+  (check-true (and (attackable? board31 0 territory1 1) #t))
+  (check-true (no-more-moves-in-world? world1))
+
+  (check-equal? (interact-with-board (dice-world 3 '() '()) "d")
+                (dice-world #f '() '()))
+
+  (check-equal? (game-board (the-ai-plays tree0))
+                (list (territory 3 1 3 0 0)
+                      (territory 2 0 2 0 0)
+                      (territory 1 0 2 0 0)
+                      (territory 0 1 2 0 0)))
+
+  (check-equal? (game-player (the-ai-plays tree0))
+                0)
+
+  (check-equal? (game-board (move-gt (first (game-moves tree0))))
+                (list (territory 0 1 1 0 0)
+                      (territory 1 0 2 0 0)
+                      (territory 2 0 2 0 0)
+                      (territory 3 1 2 0 0)))
+
+  (check-equal? (game-player (move-gt (first (game-moves tree0))))
+                1)
+
+  (check-equal? (rate-position tree0 AI-DEPTH) 1/2)
+  (check-equal? (rate-position (move-gt (first (game-moves tree0))) AI-DEPTH)
+                1/2)
+
+  (set-grid old-size)
+  "all tests run")
+
+(module+ main
+  (roll-the-dice))
