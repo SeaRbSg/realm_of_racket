@@ -10,3 +10,6 @@
   (launch-many-worlds (launch-guess-client "Ryan")
                       (launch-guess-client2 "Fred")
                       (launch-guess-server)))
+
+(module+ main
+	 (run))
